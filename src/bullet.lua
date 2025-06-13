@@ -13,14 +13,19 @@ function Bullet:new(pos, rot, scale, speed)
 	self.rotation = rot
 end
 
-function Bullet:update(dt)
+function Bullet:update(dt, level)
 	self.pos.x = self.pos.x + math.cos(self.rotation) * self.speed
 	self.pos.y = self.pos.y + math.sin(self.rotation) * self.speed
 
-	if self.liveTimer == 1 then
+	if self.liveTimer >= 1 then
 		self:free()
 	end
 	self.liveTimer = self.liveTimer + dt
+
+    if not level:containsPoint(self.pos) then
+        self:free()
+    end
+    -- self.pos = level:wrapPosition(self.pos)
 end
 
 function Bullet:draw()

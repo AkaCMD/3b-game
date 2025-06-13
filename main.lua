@@ -50,7 +50,7 @@ function love.update(dt)
 	for i = #entities, 1, -1 do
 	    local entity = entities[i]
 	    if entity.isValid then
-	        entity:update(dt, entity:is(Player) and level or nil)
+	        entity:update(dt, (entity:is(Player) or entity:is(Bullet)) and level or nil)
 	    else
 	    	-- Remove invalid entities
 	        table.remove(entities, i)
@@ -62,11 +62,8 @@ function love.update(dt)
 		for j = i + 1, #entities do
 			local a, b = entities[i], entities[j]
 			if a:overlaps(b) then
-				print("Collision between " .. tostring(a) .. " and " .. tostring(b))
+				-- print("Collision between " .. tostring(a) .. " and " .. tostring(b))
 				local msv = a:resolveCollision(b, 0.5)
-				if msv then
-					print("Resolved with MSV: " .. tostring(msv))
-				end
 			end
 		end
 	end
