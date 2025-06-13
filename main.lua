@@ -21,6 +21,7 @@ function love.load()
 
 	love.window.setTitle("Bravo! Border Breaker")
 	love.window.setMode(screen_width, screen_height)
+	love.graphics.setFont(assets.fonts.RasterForgeRegular(16))
 
 	love.mouse.setVisible(false)
 	-- love.mouse.setGrabbed(true)
@@ -71,6 +72,10 @@ end
 
 function love.draw()
     effect(function()
+    	love.graphics.setLineWidth(2)
+    	love.graphics.setColor(1, 0, 0.267, 1)
+    	love.graphics.print("Ready or not, give me all that you've got!", 15, 15)
+    	love.graphics.setColor(1, 1, 1, 1)
       	drawRotatedRectangle("line", screen_width/2, screen_height/2, 480 + 20, 480 + 20, angle)
       	level:draw()
 		for _, entity in ipairs(entities) do

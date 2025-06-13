@@ -66,7 +66,7 @@ function Level:wrapPosition(pos)
 end
 
 function Level:draw()
-	love.graphics.setColor(0, 1, 68.0/255.0, 1)
+	love.graphics.setColor(0, 0.58, 0.47, 1)
     local corners = {
         vec2:pooled(self.center.x - self.hs.x, self.center.y - self.hs.y),
         vec2:pooled(self.center.x + self.hs.x, self.center.y - self.hs.y),

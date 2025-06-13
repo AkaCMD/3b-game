@@ -22,10 +22,10 @@ function Bullet:update(dt, level)
 	end
 	self.liveTimer = self.liveTimer + dt
 
-    if not level:containsPoint(self.pos) then
-        self:free()
-    end
-    -- self.pos = level:wrapPosition(self.pos)
+    -- if not level:containsPoint(self.pos) then
+    --     self:free()
+    -- end
+    self.pos = level:wrapPosition(self.pos)
 end
 
 function Bullet:draw()
