@@ -48,3 +48,7 @@ function Player:lookAtCursor()
     local mouseX, mouseY = love.mouse.getPosition()
     self.rotation = math.atan2(mouseY - self.pos.y, mouseX - self.pos.x) + math.pi/2
 end
+
+function Player:shoot()
+	return Bullet(self.pos:copy() + 10 * vec2(math.cos(self.rotation - math.pi/2), math.sin(self.rotation - math.pi/2)), self.rotation - math.pi/2, vec2(3, 3), 6)
+end

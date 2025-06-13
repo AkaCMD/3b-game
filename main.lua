@@ -12,6 +12,9 @@ require("src.level")
 
 local entities = {}
 
+local shootCooldown = 0.05
+local lastShotTime = 0
+
 function love.load()
 	screen_width = 720
 	screen_height = 720
@@ -33,12 +36,25 @@ end
 
 local angle = 0
 function love.update(dt)
+	lastShotTime = lastShotTime + dt
+	if love.mouse.isDown(1) and lastShotTime >= shootCooldown then
+        newBullet = player:shoot()
+        table.insert(entities, newBullet)
+        lastShotTime = 0
+    end
+
 	level:update(dt)
 	angle = angle + dt * 0.8
 
 	-- Update all entities
-	for _, entity in ipairs(entities) do
-		entity:update(dt, entity:is(Player) and level or nil)
+	for i = #entities, 1, -1 do
+	    local entity = entities[i]
+	    if entity.isValid then
+	        entity:update(dt, entity:is(Player) and level or nil)
+	    else
+	    	-- Remove invalid entities
+	        table.remove(entities, i)
+	    end
 	end
 
 	-- Check collisions

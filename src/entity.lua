@@ -10,6 +10,7 @@ function Entity:new(pos, scale)
 	self.hitbox = vec2(10, 10)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.hasCollision = true
+	self.isValid = true
 end
 
 function Entity:update(dt)
@@ -81,4 +82,8 @@ function Entity:drawHitbox()
     )
     vec2.release(hs, corners[1], corners[2], corners[3], corners[4])
     love.graphics.setColor(1, 1, 1, 1)
+end
+
+function Entity:free()
+	self.isValid = false
 end
