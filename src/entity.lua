@@ -1,16 +1,30 @@
+vec2 = batteries.vec2
 Entity = class({
 	name = "Entity",
 	default_tostring = true
 })
 
+---Make an entity
+---@param pos vec2
+---@param scale vec2
+---@class Entity
+---@field rotation number
+---@field pos vec2
+---@field scale vec2
+---@field hitbox vec2
+---@field hs vec2
+---@field hasCollision boolean
+---@field isValid boolean
+---@field health integer
 function Entity:new(pos, scale)
+    self.rotation = 0
 	self.pos = pos or vec2(0, 0)
-	self.rotation = 0
 	self.scale = scale or vec2(1, 1)
 	self.hitbox = vec2(10, 10)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.hasCollision = true
 	self.isValid = true
+	self.health = 3
 end
 
 function Entity:update(dt)
@@ -19,6 +33,8 @@ end
 function Entity:draw()
 end
 
+---@param other Entity
+---@return boolean
 function Entity:overlaps(other)
 	if not self.hasCollision or not other.hasCollision then
 		return false
@@ -26,6 +42,9 @@ function Entity:overlaps(other)
 	return intersect.aabb_aabb_overlap(self.pos, self.hs, other.pos, other.hs)
 end
 
+---@param other Entity
+---@param into vec2
+---@return msv|false result
 function Entity:collide(other, into)
 	if not self.hasCollision or not other.hasCollision then
         return false
@@ -33,6 +52,9 @@ function Entity:collide(other, into)
 	return intersect.aabb_aabb_collide(self.pos, self.hs, other.pos, other.hs, into)
 end
 
+---@param other Entity
+---@param balance number
+---@return msv|false msv
 function Entity:resolveCollision(other, balance)
 	if not self.hasCollision or not other.hasCollision then
 		return false

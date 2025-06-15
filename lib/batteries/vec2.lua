@@ -18,6 +18,7 @@ end
 
 --ctor
 function vec2:new(x, y)
+	---@class vec2
 	if type(x) == "number" then
 		self:scalar_set(x, y)
 	elseif type(x) == "table" then

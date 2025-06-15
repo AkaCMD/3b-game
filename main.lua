@@ -1,7 +1,11 @@
+if arg[2] == "debug" then
+    require("lldebugger").start()
+end
+
 io.stdout:setvbuf("no")
 love.graphics.setDefaultFilter("nearest", "nearest")
 
-require("lib.batteries"):export()
+batteries = require("lib.batteries"):export()
 assets = require("lib.cargo.cargo").init("assets")
 moonshine = require("lib.moonshine")
 require("src.entity")
@@ -12,13 +16,16 @@ require("src.level")
 
 local entities = {}
 
-local shootCooldown = 0.05
+local screen_width = 720
+local screen_height = 720
+
+local shootCooldown = 0.1
 local lastShotTime = 0
 
-function love.load()
-	screen_width = 720
-	screen_height = 720
+local level
+local effect
 
+function love.load()
 	love.window.setTitle("Bravo! Border Breaker")
 	love.window.setMode(screen_width, screen_height)
 	love.graphics.setFont(assets.fonts.RasterForgeRegular(16))
@@ -29,7 +36,7 @@ function love.load()
 	level = Level(vec2(screen_width/2, screen_height/2), 480, 480, 0, true)
 
 	effect = moonshine(moonshine.effects.crt).chain(moonshine.effects.glow)
-	cursor = Cursor(vec2(0, 0), vec2(3, 3))
+	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
 	player = Player(vec2(360, 360), vec2(2, 2))
 	table.insert(entities, cursor)
 	table.insert(entities, player)
@@ -39,7 +46,7 @@ local angle = 0
 function love.update(dt)
 	lastShotTime = lastShotTime + dt
 	if love.mouse.isDown(1) and lastShotTime >= shootCooldown then
-        newBullet = player:shoot()
+        local newBullet = player:shoot()
         table.insert(entities, newBullet)
         lastShotTime = 0
     end
@@ -80,7 +87,7 @@ function love.draw()
       	level:draw()
 		for _, entity in ipairs(entities) do
 			entity:draw()
-			entity:drawHitbox()
+			-- entity:drawHitbox()
 		end
     end)
 end
@@ -93,4 +100,14 @@ function drawRotatedRectangle(mode, x, y, width, height, angle)
 	love.graphics.rotate(angle)
 	love.graphics.rectangle(mode, -width/2, -height/2, width, height) -- origin in the middle   
 	love.graphics.pop()
+end
+
+local loveErrorHandler = love.errorhandler
+
+function love.errorhandler(msg)
+    if lldebugger then
+        error(msg, 2)
+    else
+        return loveErrorHandler(msg)
+    end
 end
