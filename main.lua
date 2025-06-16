@@ -1,8 +1,8 @@
+io.stdout:setvbuf("no")
 if arg[2] == "debug" then
     require("lldebugger").start()
 end
 
-io.stdout:setvbuf("no")
 love.graphics.setDefaultFilter("nearest", "nearest")
 
 batteries = require("lib.batteries"):export()
@@ -13,6 +13,7 @@ require("src.cursor")
 require("src.player")
 require("src.bullet")
 require("src.level")
+require("src.enemy_spawner")
 
 local entities = {}
 
@@ -24,6 +25,8 @@ local lastShotTime = 0
 
 local level
 local effect
+
+local enemySpawner
 
 function love.load()
 	love.window.setTitle("Bravo! Border Breaker")
@@ -40,6 +43,7 @@ function love.load()
 	player = Player(vec2(360, 360), vec2(2, 2))
 	table.insert(entities, cursor)
 	table.insert(entities, player)
+	enemySpawner = EnemySpawner()
 end
 
 local angle = 0
@@ -52,6 +56,7 @@ function love.update(dt)
     end
 
 	level:update(dt)
+	enemySpawner:update(dt)
 	angle = angle + dt * 0.8
 
 	-- Update all entities
