@@ -9,21 +9,23 @@ batteries = require("lib.batteries"):export()
 assets = require("lib.cargo.cargo").init("assets")
 moonshine = require("lib.moonshine")
 roomy= require("lib.roomy")
+flux = require("lib.flux.flux")
 require("src.entity")
 require("src.cursor")
 require("src.player")
 require("src.bullet")
 require("src.level")
 require("src.enemy_spawner")
+require("src.ui")
 
 local entities = {}
 
-local screen_width = 720
-local screen_height = 720
+SCREEN_WIDTH = 720
+SCREEN_HEIGHT = 720
 
 local shootCooldown = 0.1
 local lastShotTime = 0
-
+  
 local level
 local effect
 
@@ -31,9 +33,8 @@ local enemySpawner
 
 local title = "Bravo! Border Breaker"
 local default_font
-local title_font
-theme_color = {
-
+THEME_COLOR = {
+	
 }
 -- Scene
 local sceneManager
@@ -44,15 +45,14 @@ state.pause = {}
 
 function love.load()
 	love.window.setTitle(title)
-	love.window.setMode(screen_width, screen_height)
+	love.window.setMode(SCREEN_WIDTH, SCREEN_HEIGHT)
 	default_font = assets.fonts.RasterForgeRegular(16)
-	title_font = assets.fonts.RasterForgeRegular(32)
 	love.graphics.setFont(default_font)
 
 	love.mouse.setVisible(false)
 	-- love.mouse.setGrabbed(true)
 
-	level = Level(vec2(screen_width/2, screen_height/2), 480, 480, 0, true)
+	level = Level(vec2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2), 480, 480, 0, true)
 
 	effect = moonshine(moonshine.effects.crt).chain(moonshine.effects.glow)
 	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
@@ -63,6 +63,10 @@ function love.load()
 	sceneManager = roomy.new()
 	sceneManager:hook()
 	sceneManager:enter(state.menu)
+end
+
+function love.update(dt)
+	flux.update(dt)
 end
 
 function drawRotatedRectangle(mode, x, y, width, height, angle)
@@ -90,10 +94,10 @@ local angle = 0
 function state.gameplay:draw()
     effect(function()
     	love.graphics.setLineWidth(2)
-    	love.graphics.setColor(1, 0, 0.267, 1)
-    	love.graphics.print("Ready or not, give me all that you've got!", 15, 15)
+    	-- love.graphics.setColor(1, 0, 0.267, 1)
+    	-- love.graphics.print("Ready or not, give me all that you've got!", 15, 15)
     	love.graphics.setColor(1, 1, 1, 1)
-      	drawRotatedRectangle("line", screen_width/2, screen_height/2, 480 + 20, 480 + 20, angle)
+      	drawRotatedRectangle("line", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 480 + 20, 480 + 20, angle)
       	level:draw()
 		for _, entity in ipairs(entities) do
 			entity:draw()
@@ -137,16 +141,33 @@ function state.gameplay:update(dt)
 	end
 end
 
+function state.gameplay:keypressed(key)
+	if key == "escape" then
+		sceneManager.enter(state.menu)
+	end
+end
+
 -- Scene: menu
+local title = UI(title, 32, {1, 0, 0.267, 1}, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100, true, 0)
+local pressKey = UI("Press Any Key To Fight", 16, {1, 1, 1, 1}, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 80, true, 0)
+function state.menu:enter()
+	local function titleWobbling()
+		flux.to(title, 2, {rot = -0.1})
+			:after(title, 2, {rot = 0.1})
+			:oncomplete(titleWobbling)
+	end
+	titleWobbling()
+	local function pressKeyBlink()
+        flux.to(pressKey, 1, { a = 0 })
+            :after(pressKey, 1, { a = 1 })
+            :oncomplete(pressKeyBlink)
+    end
+    pressKeyBlink()
+end
+
 function state.menu:draw()
-	love.graphics.setColor(1, 0, 0.267, 1)
-	love.graphics.setFont(title_font)
-	local x = (screen_width - title_font:getWidth(title)) / 2
-	local y = (screen_height - title_font:getHeight()) / 2
-	love.graphics.print(title, x, y - 100)
-	love.graphics.setFont(default_font)
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.print("Press Any Key To Fight", (screen_width - default_font:getWidth(title)) / 2, (screen_height - default_font:getHeight()) / 2 + 100)
+	title:draw()
+	pressKey:draw()
 end
 
 function state.menu:keypressed(key)
