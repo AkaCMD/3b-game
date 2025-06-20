@@ -5,7 +5,7 @@ EnemySpawner = class({
 
 ---@class EnemySpawner
 function EnemySpawner:new()
-    self.waveTimer = batteries.timer:new(
+    self.waveTimer = batteries.timer(
         3.0,
         nil,
         function(_, timer)

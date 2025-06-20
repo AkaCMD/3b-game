@@ -8,6 +8,7 @@ love.graphics.setDefaultFilter("nearest", "nearest")
 batteries = require("lib.batteries"):export()
 assets = require("lib.cargo.cargo").init("assets")
 moonshine = require("lib.moonshine")
+roomy= require("lib.roomy")
 require("src.entity")
 require("src.cursor")
 require("src.player")
@@ -28,10 +29,25 @@ local effect
 
 local enemySpawner
 
+local title = "Bravo! Border Breaker"
+local default_font
+local title_font
+theme_color = {
+
+}
+-- Scene
+local sceneManager
+local state = {}
+state.gameplay = {}
+state.menu = {}
+state.pause = {}
+
 function love.load()
-	love.window.setTitle("Bravo! Border Breaker")
+	love.window.setTitle(title)
 	love.window.setMode(screen_width, screen_height)
-	love.graphics.setFont(assets.fonts.RasterForgeRegular(16))
+	default_font = assets.fonts.RasterForgeRegular(16)
+	title_font = assets.fonts.RasterForgeRegular(32)
+	love.graphics.setFont(default_font)
 
 	love.mouse.setVisible(false)
 	-- love.mouse.setGrabbed(true)
@@ -44,10 +60,49 @@ function love.load()
 	table.insert(entities, cursor)
 	table.insert(entities, player)
 	enemySpawner = EnemySpawner()
+	sceneManager = roomy.new()
+	sceneManager:hook()
+	sceneManager:enter(state.menu)
 end
 
+function drawRotatedRectangle(mode, x, y, width, height, angle)
+	-- We cannot rotate the rectangle directly, but we
+	-- can move and rotate the coordinate system.
+	love.graphics.push()
+	love.graphics.translate(x, y)
+	love.graphics.rotate(angle)
+	love.graphics.rectangle(mode, -width/2, -height/2, width, height) -- origin in the middle   
+	love.graphics.pop()
+end
+
+local loveErrorHandler = love.errorhandler
+
+function love.errorhandler(msg)
+    if lldebugger then
+        error(msg, 2)
+    else
+        return loveErrorHandler(msg)
+    end
+end
+
+-- Scene: gameplay
 local angle = 0
-function love.update(dt)
+function state.gameplay:draw()
+    effect(function()
+    	love.graphics.setLineWidth(2)
+    	love.graphics.setColor(1, 0, 0.267, 1)
+    	love.graphics.print("Ready or not, give me all that you've got!", 15, 15)
+    	love.graphics.setColor(1, 1, 1, 1)
+      	drawRotatedRectangle("line", screen_width/2, screen_height/2, 480 + 20, 480 + 20, angle)
+      	level:draw()
+		for _, entity in ipairs(entities) do
+			entity:draw()
+			-- entity:drawHitbox()
+		end
+    end)
+end
+
+function state.gameplay:update(dt)
 	lastShotTime = lastShotTime + dt
 	if love.mouse.isDown(1) and lastShotTime >= shootCooldown then
         local newBullet = player:shoot()
@@ -82,37 +137,23 @@ function love.update(dt)
 	end
 end
 
-function love.draw()
-    effect(function()
-    	love.graphics.setLineWidth(2)
-    	love.graphics.setColor(1, 0, 0.267, 1)
-    	love.graphics.print("Ready or not, give me all that you've got!", 15, 15)
-    	love.graphics.setColor(1, 1, 1, 1)
-      	drawRotatedRectangle("line", screen_width/2, screen_height/2, 480 + 20, 480 + 20, angle)
-      	level:draw()
-		for _, entity in ipairs(entities) do
-			entity:draw()
-			-- entity:drawHitbox()
-		end
-    end)
+-- Scene: menu
+function state.menu:draw()
+	love.graphics.setColor(1, 0, 0.267, 1)
+	love.graphics.setFont(title_font)
+	local x = (screen_width - title_font:getWidth(title)) / 2
+	local y = (screen_height - title_font:getHeight()) / 2
+	love.graphics.print(title, x, y - 100)
+	love.graphics.setFont(default_font)
+	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.print("Press Any Key To Fight", (screen_width - default_font:getWidth(title)) / 2, (screen_height - default_font:getHeight()) / 2 + 100)
 end
 
-function drawRotatedRectangle(mode, x, y, width, height, angle)
-	-- We cannot rotate the rectangle directly, but we
-	-- can move and rotate the coordinate system.
-	love.graphics.push()
-	love.graphics.translate(x, y)
-	love.graphics.rotate(angle)
-	love.graphics.rectangle(mode, -width/2, -height/2, width, height) -- origin in the middle   
-	love.graphics.pop()
+function state.menu:keypressed(key)
+	if key ~= nil then
+		sceneManager:enter(state.gameplay)
+	end
 end
 
-local loveErrorHandler = love.errorhandler
-
-function love.errorhandler(msg)
-    if lldebugger then
-        error(msg, 2)
-    else
-        return loveErrorHandler(msg)
-    end
-end
+-- Scene: pause
+-- TODO
