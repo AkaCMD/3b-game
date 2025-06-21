@@ -75,7 +75,7 @@ function Entity:drawHitbox()
 	if not self.hasCollision then
 		return
 	end
-   
+
     love.graphics.setColor(1, 0, 0, 1) -- Red outline
     local hs = self.hs:pooled_copy():vector_mul(self.scale)
     local corners = {

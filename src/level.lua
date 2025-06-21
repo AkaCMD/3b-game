@@ -83,7 +83,7 @@ function Level:draw()
             corner.x, corner.y = x, y
             corner:vector_add_inplace(self.center)
         end
-    end    
+    end
     love.graphics.line(
         corners[1].x, corners[1].y,
         corners[2].x, corners[2].y,

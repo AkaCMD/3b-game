@@ -49,10 +49,9 @@ function love.load()
 	default_font = assets.fonts.RasterForgeRegular(16)
 	love.graphics.setFont(default_font)
 
-	love.mouse.setVisible(false)
 	-- love.mouse.setGrabbed(true)
 
-	level = Level(vec2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2), 480, 480, 0, true)
+	level = Level(vec2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2), 480, 480, 0, false)
 
 	effect = moonshine(moonshine.effects.crt).chain(moonshine.effects.glow)
 	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
@@ -90,6 +89,10 @@ function love.errorhandler(msg)
 end
 
 -- Scene: gameplay
+function state.gameplay:enter()
+	love.mouse.setVisible(false)
+end
+
 local angle = 0
 function state.gameplay:draw()
     effect(function()
@@ -97,7 +100,11 @@ function state.gameplay:draw()
     	-- love.graphics.setColor(1, 0, 0.267, 1)
     	-- love.graphics.print("Ready or not, give me all that you've got!", 15, 15)
     	love.graphics.setColor(1, 1, 1, 1)
-      	drawRotatedRectangle("line", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 480 + 20, 480 + 20, angle)
+		if level.isRotating then
+      		drawRotatedRectangle("line", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 480 + 20, 480 + 20, angle)
+		else
+			drawRotatedRectangle("line", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 480 + 20, 480 + 20, 0)
+		end
       	level:draw()
 		for _, entity in ipairs(entities) do
 			entity:draw()
@@ -142,9 +149,9 @@ function state.gameplay:update(dt)
 end
 
 function state.gameplay:keypressed(key)
-	if key == "escape" then
-		sceneManager.enter(state.menu)
-	end
+	-- if key == "escape" then
+	-- 	sceneManager.enter(state.menu)
+	-- end
 end
 
 -- Scene: menu

@@ -40,7 +40,7 @@ love.graphics.push()
     else
         love.graphics.print(self.content, 0, 0)
     end
-    
+
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.pop()
 end
