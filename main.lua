@@ -149,9 +149,9 @@ function state.gameplay:update(dt)
 end
 
 function state.gameplay:keypressed(key)
-	-- if key == "escape" then
-	-- 	sceneManager.enter(state.menu)
-	-- end
+	if key == "escape" then
+		sceneManager.enter(state.pause)
+	end
 end
 
 -- Scene: menu
@@ -184,4 +184,13 @@ function state.menu:keypressed(key)
 end
 
 -- Scene: pause
--- TODO
+local pauseText = UI("PAUSE", 40, {1, 1, 1, 1}, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, true, 0)
+function state.pause:draw()
+	pauseText:draw()
+end
+
+function state.pause:keypressed(key)
+	if key == "escape" then
+		sceneManager:enter(state.gameplay)
+	end
+end
