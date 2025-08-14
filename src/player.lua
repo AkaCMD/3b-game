@@ -36,7 +36,7 @@ end
 
 function Player:draw()
 	Entity:draw()
-	local img = assets.images.fighter
+	local img = Assets.images.fighter
 	if self.lastPos.x > self.pos.x then
 		love.graphics.draw(img, self.pos.x, self.pos.y, math.rad(-10) + self.rotation, self.scale.x, self.scale.y, img:getWidth()/2, img:getHeight()/2)
 	elseif self.lastPos.x < self.pos.x then
@@ -52,6 +52,6 @@ function Player:lookAtCursor()
 end
 
 function Player:shoot()
-	love.audio.play(assets.sfx.small_hit)
+	love.audio.play(Assets.sfx.small_hit)
 	return Bullet(self.pos:copy() + 10 * vec2(math.cos(self.rotation - math.pi/2), math.sin(self.rotation - math.pi/2)), self.rotation - math.pi/2, vec2(3, 3), 4)
 end

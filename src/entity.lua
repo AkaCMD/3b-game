@@ -1,4 +1,4 @@
-vec2 = batteries.vec2
+vec2 = Batteries.vec2
 Entity = class({
 	name = "Entity",
 	default_tostring = true

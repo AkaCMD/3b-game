@@ -30,6 +30,6 @@ function Bullet:update(dt, level)
 end
 
 function Bullet:draw()
-	local img = assets.images.bullet
+	local img = Assets.images.bullet
 	love.graphics.draw(img, self.pos.x, self.pos.y, self.rotation + math.pi/2, self.scale.x, self.scale.y, img:getWidth()/2, img:getHeight()/2)
 end

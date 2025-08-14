@@ -26,7 +26,7 @@ end
 function UI:draw()
 love.graphics.push()
     love.graphics.setColor(self.r, self.g, self.b, self.a)
-    local font = assets.fonts.RasterForgeRegular(self.fontSize)
+    local font = Assets.fonts.RasterForgeRegular(self.fontSize)
     love.graphics.setFont(font)
 
     love.graphics.translate(self.x, self.y)

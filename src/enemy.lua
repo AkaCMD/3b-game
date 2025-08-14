@@ -20,6 +20,6 @@ function Enemy:update(dt, level)
 end
 
 function Enemy:draw()
-	local img = assets.images.enemy
+	local img = Assets.images.enemy
 	love.graphics.draw(img, self.pos.x, self.pos.y, self.rotation + math.pi/2, self.scale.x, self.scale.y, img:getWidth()/2, img:getHeight()/2)
 end

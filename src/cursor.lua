@@ -19,7 +19,7 @@ end
 function Cursor:draw()
 	Entity:draw()
 
-	local img = assets.images.cursor
+	local img = Assets.images.cursor
 	if self.lastPos.x > self.pos.x then
 		love.graphics.draw(img, self.pos.x, self.pos.y, math.rad(-10), self.scale.x, self.scale.y, img:getWidth()/2, img:getHeight()/2)
 	elseif self.lastPos.x < self.pos.x then

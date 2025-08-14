@@ -5,11 +5,11 @@ end
 
 love.graphics.setDefaultFilter("nearest", "nearest")
 
-batteries = require("lib.batteries"):export()
-assets = require("lib.cargo.cargo").init("assets")
-moonshine = require("lib.moonshine")
-roomy= require("lib.roomy")
-flux = require("lib.flux.flux")
+Batteries = require("lib.batteries"):export()
+Assets = require("lib.cargo.cargo").init("assets")
+Moonshine = require("lib.moonshine")
+Roomy = require("lib.roomy")
+Flux = require("lib.flux.flux")
 require("src.entity")
 require("src.cursor")
 require("src.player")
@@ -46,29 +46,29 @@ state.pause = {}
 function love.load()
 	love.window.setTitle(title)
 	love.window.setMode(SCREEN_WIDTH, SCREEN_HEIGHT)
-	default_font = assets.fonts.RasterForgeRegular(16)
+	default_font = Assets.fonts.RasterForgeRegular(16)
 	love.graphics.setFont(default_font)
 
 	-- love.mouse.setGrabbed(true)
 
 	level = Level(vec2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2), 480, 480, 0, false)
 
-	effect = moonshine(moonshine.effects.crt).chain(moonshine.effects.glow)
+	effect = Moonshine(Moonshine.effects.crt).chain(Moonshine.effects.glow)
 	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
-	player = Player(vec2(360, 360), vec2(2, 2))
+	Player = Player(vec2(360, 360), vec2(2, 2))
 	table.insert(entities, cursor)
-	table.insert(entities, player)
+	table.insert(entities, Player)
 	enemySpawner = EnemySpawner()
-	sceneManager = roomy.new()
+	sceneManager = Roomy.new()
 	sceneManager:hook()
 	sceneManager:enter(state.menu)
 end
 
 function love.update(dt)
-	flux.update(dt)
+	Flux.update(dt)
 end
 
-function drawRotatedRectangle(mode, x, y, width, height, angle)
+local function drawRotatedRectangle(mode, x, y, width, height, angle)
 	-- We cannot rotate the rectangle directly, but we
 	-- can move and rotate the coordinate system.
 	love.graphics.push()
@@ -116,7 +116,7 @@ end
 function state.gameplay:update(dt)
 	lastShotTime = lastShotTime + dt
 	if love.mouse.isDown(1) and lastShotTime >= shootCooldown then
-        local newBullet = player:shoot()
+        local newBullet = Player:shoot()
         table.insert(entities, newBullet)
         lastShotTime = 0
     end
@@ -159,13 +159,13 @@ local title = UI(title, 32, {1, 0, 0.267, 1}, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 
 local pressKey = UI("Press Any Key To Fight", 16, {1, 1, 1, 1}, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 80, true, 0)
 function state.menu:enter()
 	local function titleWobbling()
-		flux.to(title, 2, {rot = -0.1})
+		Flux.to(title, 2, {rot = -0.1})
 			:after(title, 2, {rot = 0.1})
 			:oncomplete(titleWobbling)
 	end
 	titleWobbling()
 	local function pressKeyBlink()
-        flux.to(pressKey, 1, { a = 0 })
+        Flux.to(pressKey, 1, { a = 0 })
             :after(pressKey, 1, { a = 1 })
             :oncomplete(pressKeyBlink)
     end

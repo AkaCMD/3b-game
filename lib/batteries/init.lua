@@ -82,7 +82,7 @@ function _batteries:export()
 	ripairs = self.tablex.ripairs
 
 	--export the whole library to global `batteries`
-	batteries = self
+	Batteries = self
 
 	return self
 end
