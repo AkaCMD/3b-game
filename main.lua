@@ -55,9 +55,9 @@ function love.load()
 
 	effect = Moonshine(Moonshine.effects.crt).chain(Moonshine.effects.glow)
 	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
-	Player = Player(vec2(360, 360), vec2(2, 2))
+	player = Player(vec2(360, 360), vec2(2, 2))
 	table.insert(entities, cursor)
-	table.insert(entities, Player)
+	table.insert(entities, player)
 	enemySpawner = EnemySpawner()
 	sceneManager = Roomy.new()
 	sceneManager:hook()
@@ -108,7 +108,7 @@ function state.gameplay:draw()
       	level:draw()
 		for _, entity in ipairs(entities) do
 			entity:draw()
-			-- entity:drawHitbox()
+			entity:drawHitbox()
 		end
     end)
 end
@@ -116,7 +116,7 @@ end
 function state.gameplay:update(dt)
 	lastShotTime = lastShotTime + dt
 	if love.mouse.isDown(1) and lastShotTime >= shootCooldown then
-        local newBullet = Player:shoot()
+        local newBullet = player:shoot()
         table.insert(entities, newBullet)
         lastShotTime = 0
     end
@@ -150,7 +150,7 @@ end
 
 function state.gameplay:keypressed(key)
 	if key == "escape" then
-		sceneManager.enter(state.pause)
+		sceneManager:push(state.pause)
 	end
 end
 
@@ -191,6 +191,6 @@ end
 
 function state.pause:keypressed(key)
 	if key == "escape" then
-		sceneManager:enter(state.gameplay)
+		sceneManager:pop()
 	end
 end
