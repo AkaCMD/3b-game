@@ -13,10 +13,22 @@ function Enemy:new(pos, rot, scale, speed)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.rotation = rot
 	self.health = 4
+	self.tween = nil
 end
 
-function Enemy:update(dt, level)
+---@param target Entity What they are chasing
+function Enemy:update(dt, level, target)
+	if target and target.pos then
+		local dir = (target.pos - self.pos):normalise_inplace()
+		local targetAngle = math.atan2(dir.y, dir.x)
+		if not self.tween or self.tween:isDone() then
+			self.tween = Flux.to(self, 0.5, { rotation = targetAngle })
+				:ease("quadout")
+		end
 
+		local moveDir = vec2(math.cos(self.rotation), math.sin(self.rotation))
+		self.pos:add_inplace(moveDir:scalar_mul_inplace(self.speed * dt))
+	end
 end
 
 function Enemy:draw()
