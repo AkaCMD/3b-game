@@ -4,34 +4,43 @@ Enemy = class({
 	default_tostring = true
 })
 
----@class Enemy:Entity
----@field speed number
 function Enemy:new(pos, rot, scale, speed)
+	---@class Enemy:Entity
 	self:super(pos, scale)
-	self.speed = speed
+	self.speed = speed or 10
 	self.hitbox = vec2(8, 8)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
-	self.rotation = rot
-	self.health = 4
-	self.tween = nil
+	self.rotation = rot or 0
+	self.health = 1
 end
 
----@param target Entity What they are chasing
-function Enemy:update(dt, level, target)
-	if target and target.pos then
-		local dir = (target.pos - self.pos):normalise_inplace()
+function Enemy:update(dt, level)
+	if player and player.pos then
+		local dir = (player.pos - self.pos):normalise_inplace()
 		local targetAngle = math.atan2(dir.y, dir.x)
-		if not self.tween or self.tween:isDone() then
-			self.tween = Flux.to(self, 0.5, { rotation = targetAngle })
-				:ease("quadout")
-		end
+		-- self.rotation = targetAngle
+        local lerpSpeed = 3.0
+        local angleDiff = (targetAngle - self.rotation + math.pi) % (2 * math.pi) - math.pi
+        self.rotation = self.rotation + angleDiff * lerpSpeed * dt
 
 		local moveDir = vec2(math.cos(self.rotation), math.sin(self.rotation))
 		self.pos:add_inplace(moveDir:scalar_mul_inplace(self.speed * dt))
 	end
+
+	if level then
+        self.pos = level:wrapPosition(self.pos)
+    end
 end
 
 function Enemy:draw()
 	local img = Assets.images.enemy
 	love.graphics.draw(img, self.pos.x, self.pos.y, self.rotation + math.pi/2, self.scale.x, self.scale.y, img:getWidth()/2, img:getHeight()/2)
+end
+
+function Enemy:onCollide(bullet)
+    self.health = self.health - 1
+    if self.health <= 0 then
+        self:free()
+    end
+    bullet:free()
 end

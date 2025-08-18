@@ -24,7 +24,7 @@ function World:update(dt, level)
 	for i = #self.entities, 1, -1 do
 	    local entity = self.entities[i]
 	    if entity.isValid then
-	        entity:update(dt, (entity:is(Player) or entity:is(Bullet)) and level or nil)
+	        entity:update(dt, (entity:is(Player) or entity:is(Bullet) or entity:is(Enemy)) and level or nil)
 	    else
 	        self:remove_entity(i)
 	    end
@@ -37,7 +37,7 @@ function World:check_collisions()
 		for j = i + 1, #self.entities do
 			local a, b = self.entities[i], self.entities[j]
 			if a:overlaps(b) then
-				-- print("Collision between " .. tostring(a) .. " and " .. tostring(b))
+				print("Collision between " .. tostring(a) .. " and " .. tostring(b))
 				local msv = a:resolveCollision(b, 0.5)
 			end
 		end

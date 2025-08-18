@@ -17,6 +17,7 @@ require("src.bullet")
 require("src.level")
 require("src.world")
 require("src.enemy_spawner")
+require("src.enemy")
 require("src.ui")
 
 local world = World()
@@ -56,7 +57,12 @@ function love.load()
 
 	effect = Moonshine(Moonshine.effects.crt).chain(Moonshine.effects.glow)
 	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
-	player = Player(vec2(360, 360), vec2(2, 2))
+	player = Player(vec2(360, 360), vec2(1.5, 1.5))
+	-- For test
+	world:add_entity(Enemy(vec2(300, 300), 0, vec2(1.5, 1.5), 100))
+	world:add_entity(Enemy(vec2(200, 300), 0, vec2(1.5, 1.5), 100))
+	world:add_entity(Enemy(vec2(500, 300), 0, vec2(1.5, 1.5), 100))
+	
 	world:add_entity(cursor)
 	world:add_entity(player)
 	enemySpawner = EnemySpawner()
@@ -75,7 +81,7 @@ local function drawRotatedRectangle(mode, x, y, width, height, angle)
 	love.graphics.push()
 	love.graphics.translate(x, y)
 	love.graphics.rotate(angle)
-	love.graphics.rectangle(mode, -width/2, -height/2, width, height) -- origin in the middle   
+	love.graphics.rectangle(mode, -width/2, -height/2, width, height) -- origin in the middle
 	love.graphics.pop()
 end
 
@@ -109,7 +115,7 @@ function state.gameplay:draw()
       	level:draw()
 		for _, entity in ipairs(world.entities) do
 			entity:draw()
-			entity:drawHitbox()
+			-- entity:drawHitbox()
 		end
     end)
 end
