@@ -15,10 +15,11 @@ require("src.cursor")
 require("src.player")
 require("src.bullet")
 require("src.level")
+require("src.world")
 require("src.enemy_spawner")
 require("src.ui")
 
-local entities = {}
+local world = World()
 
 SCREEN_WIDTH = 720
 SCREEN_HEIGHT = 720
@@ -56,8 +57,8 @@ function love.load()
 	effect = Moonshine(Moonshine.effects.crt).chain(Moonshine.effects.glow)
 	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
 	player = Player(vec2(360, 360), vec2(2, 2))
-	table.insert(entities, cursor)
-	table.insert(entities, player)
+	world:add_entity(cursor)
+	world:add_entity(player)
 	enemySpawner = EnemySpawner()
 	sceneManager = Roomy.new()
 	sceneManager:hook()
@@ -106,7 +107,7 @@ function state.gameplay:draw()
 			drawRotatedRectangle("line", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 480 + 20, 480 + 20, 0)
 		end
       	level:draw()
-		for _, entity in ipairs(entities) do
+		for _, entity in ipairs(world.entities) do
 			entity:draw()
 			entity:drawHitbox()
 		end
@@ -117,7 +118,7 @@ function state.gameplay:update(dt)
 	lastShotTime = lastShotTime + dt
 	if love.mouse.isDown(1) and lastShotTime >= shootCooldown then
         local newBullet = player:shoot()
-        table.insert(entities, newBullet)
+		world:add_entity(newBullet)
         lastShotTime = 0
     end
 
@@ -126,26 +127,10 @@ function state.gameplay:update(dt)
 	angle = angle + dt * 0.8
 
 	-- Update all entities
-	for i = #entities, 1, -1 do
-	    local entity = entities[i]
-	    if entity.isValid then
-	        entity:update(dt, (entity:is(Player) or entity:is(Bullet)) and level or nil)
-	    else
-	    	-- Remove invalid entities
-	        table.remove(entities, i)
-	    end
-	end
+	world:update(dt, level)
 
 	-- Check collisions
-	for i = 1, #entities - 1 do
-		for j = i + 1, #entities do
-			local a, b = entities[i], entities[j]
-			if a:overlaps(b) then
-				-- print("Collision between " .. tostring(a) .. " and " .. tostring(b))
-				local msv = a:resolveCollision(b, 0.5)
-			end
-		end
-	end
+	world:check_collisions()
 end
 
 function state.gameplay:keypressed(key)
