@@ -115,7 +115,7 @@ function state.gameplay:draw()
       	level:draw()
 		for _, entity in ipairs(world.entities) do
 			entity:draw()
-			-- entity:drawHitbox()
+			entity:drawHitbox()
 		end
     end)
 end
