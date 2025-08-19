@@ -10,6 +10,7 @@ Assets = require("lib.cargo.cargo").init("assets")
 Moonshine = require("lib.moonshine")
 Roomy = require("lib.roomy")
 Flux = require("lib.flux.flux")
+Pubsub = require("lib.batteries.pubsub")
 require("src.entity")
 require("src.cursor")
 require("src.player")
@@ -38,6 +39,11 @@ local default_font
 THEME_COLOR = {
 	
 }
+bus = Pubsub()
+
+-- Screen shake
+local t, shakeDuration, shakeMagnitude = 0, -1, 0
+
 -- Scene
 local sceneManager
 local state = {}
@@ -69,6 +75,11 @@ function love.load()
 	sceneManager = Roomy.new()
 	sceneManager:hook()
 	sceneManager:enter(state.menu)
+
+	-- Init event bus
+	bus:subscribe("enemy_killed", function ()
+		startShake(0.2, 0.15)
+	end)
 end
 
 function love.update(dt)
@@ -103,6 +114,13 @@ end
 local angle = 0
 function state.gameplay:draw()
     effect(function()
+
+		if t < shakeDuration then
+			local dx = love.math.random(-shakeMagnitude, shakeMagnitude)
+			local dy = love.math.random(-shakeMagnitude, shakeMagnitude)
+			love.graphics.translate(dx, dy)
+		end
+
     	love.graphics.setLineWidth(2)
     	-- love.graphics.setColor(1, 0, 0.267, 1)
     	-- love.graphics.print("Ready or not, give me all that you've got!", 15, 15)
@@ -121,6 +139,11 @@ function state.gameplay:draw()
 end
 
 function state.gameplay:update(dt)
+
+	if t < shakeDuration then
+		t = t + dt
+	end
+
 	lastShotTime = lastShotTime + dt
 	if love.mouse.isDown(1) and lastShotTime >= shootCooldown then
         local newBullet = player:shoot()
@@ -184,4 +207,8 @@ function state.pause:keypressed(key)
 	if key == "escape" then
 		sceneManager:pop()
 	end
+end
+
+function startShake(duration, magnitude)
+	t, shakeDuration, shakeMagnitude = 0, duration or 1, magnitude or 5
 end

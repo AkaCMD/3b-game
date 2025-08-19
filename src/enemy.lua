@@ -8,7 +8,7 @@ function Enemy:new(pos, rot, scale, speed)
 	---@class Enemy:Entity
 	self:super(pos, scale)
 	self.speed = speed or 10
-	self.hitbox = vec2(8, 8)
+	self.hitbox = vec2(12, 12)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.rotation = rot or 0
 	self.health = 1
@@ -40,6 +40,7 @@ end
 function Enemy:onCollide(bullet)
     self.health = self.health - 1
     if self.health <= 0 then
+		bus:publish("enemy_killed")
         self:free()
     end
     bullet:free()
