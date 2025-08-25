@@ -52,6 +52,7 @@ state.menu = {}
 state.pause = {}
 
 function love.load()
+	love.keyboard.setTextInput(false)
 	love.window.setTitle(title)
 	love.window.setMode(SCREEN_WIDTH, SCREEN_HEIGHT)
 	default_font = Assets.fonts.RasterForgeRegular(16)
