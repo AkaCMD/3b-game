@@ -4,15 +4,16 @@ EnemySpawner = class({
 })
 
 ---@class EnemySpawner
-function EnemySpawner:new()
+function EnemySpawner:new(pos, spawnTime)
     self.waveTimer = Batteries.timer(
-        1.0,
+        spawnTime or 1.0,
         nil,
         function(_, timer)
             self:spawnWave()
             timer:reset()
         end
     )
+    self.pos = pos or vec2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
 end
 
 function EnemySpawner:update(dt)
@@ -20,5 +21,6 @@ function EnemySpawner:update(dt)
 end
 
 function EnemySpawner:spawnWave()
-    print("callback")
+    print("Callback")
+    World:add_entity(Enemy(vec2(300, 300), 0, vec2(1.5, 1.5), 100))
 end

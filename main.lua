@@ -21,7 +21,7 @@ require("src.enemy_spawner")
 require("src.enemy")
 require("src.ui")
 
-local world = World()
+World = World()
 
 SCREEN_WIDTH = 720
 SCREEN_HEIGHT = 720
@@ -66,12 +66,12 @@ function love.load()
 	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
 	player = Player(vec2(360, 360), vec2(1.5, 1.5))
 	-- For test
-	world:add_entity(Enemy(vec2(300, 300), 0, vec2(1.5, 1.5), 100))
-	world:add_entity(Enemy(vec2(200, 300), 0, vec2(1.5, 1.5), 100))
-	world:add_entity(Enemy(vec2(500, 300), 0, vec2(1.5, 1.5), 100))
+	World:add_entity(Enemy(vec2(300, 300), 0, vec2(1.5, 1.5), 100))
+	World:add_entity(Enemy(vec2(200, 300), 0, vec2(1.5, 1.5), 100))
+	World:add_entity(Enemy(vec2(500, 300), 0, vec2(1.5, 1.5), 100))
 	
-	world:add_entity(cursor)
-	world:add_entity(player)
+	World:add_entity(cursor)
+	World:add_entity(player)
 	enemySpawner = EnemySpawner()
 	sceneManager = Roomy.new()
 	sceneManager:hook()
@@ -113,6 +113,7 @@ function state.gameplay:enter()
 end
 
 local angle = 0
+local playerHealth = UI(0, 30, {1, 0, 0.267, 1}, 120, SCREEN_HEIGHT - 80, true, 0)
 function state.gameplay:draw()
     effect(function()
 
@@ -132,10 +133,12 @@ function state.gameplay:draw()
 			drawRotatedRectangle("line", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 480 + 20, 480 + 20, 0)
 		end
       	level:draw()
-		for _, entity in ipairs(world.entities) do
+		for _, entity in ipairs(World.entities) do
 			entity:draw()
 			entity:drawHitbox()
 		end
+
+		playerHealth:draw()
     end)
 end
 
@@ -148,7 +151,7 @@ function state.gameplay:update(dt)
 	lastShotTime = lastShotTime + dt
 	if love.mouse.isDown(1) and lastShotTime >= shootCooldown then
         local newBullet = player:shoot()
-		world:add_entity(newBullet)
+		World:add_entity(newBullet)
         lastShotTime = 0
     end
 
@@ -157,10 +160,14 @@ function state.gameplay:update(dt)
 	angle = angle + dt * 0.8
 
 	-- Update all entities
-	world:update(dt, level)
+	World:update(dt, level)
 
 	-- Check collisions
-	world:check_collisions()
+	World:check_collisions()
+
+	-- Update UI elements
+	-- TODO: display heart shape
+	playerHealth.content = player.health
 end
 
 function state.gameplay:keypressed(key)
