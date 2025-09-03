@@ -20,6 +20,7 @@ require("src.world")
 require("src.enemy_spawner")
 require("src.enemy")
 require("src.ui")
+require("src.utils")
 
 World = World()
 
@@ -105,6 +106,14 @@ function love.errorhandler(msg)
     else
         return loveErrorHandler(msg)
     end
+end
+
+function love.draw()
+	logger.draw()
+end
+
+function love.mousepressed(x, y, b)
+	logger.debug('Mouse "' .. tostring(b) .. '" clicked at (' .. tostring(x) .. ', ' .. tostring(y) .. ')')
 end
 
 -- Scene: gameplay
