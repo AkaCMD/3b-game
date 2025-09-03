@@ -1,3 +1,5 @@
+local make_pooled = Batteries.make_pooled
+
 Bullet = class({
 	name = "Bullet",
 	extends = Entity,
@@ -37,3 +39,11 @@ end
 function Bullet:onCollide(enemy)
     self:free()
 end
+
+function Bullet:free()
+	--why i can't just write Entity:free() ?
+	self.isValid = false
+	Bullet.release(self)
+end
+
+make_pooled(Bullet, 500)
