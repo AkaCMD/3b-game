@@ -112,10 +112,6 @@ function love.draw()
 	logger.draw()
 end
 
-function love.mousepressed(x, y, b)
-	logger.debug('Mouse "' .. tostring(b) .. '" clicked at (' .. tostring(x) .. ', ' .. tostring(y) .. ')')
-end
-
 -- Scene: gameplay
 function state.gameplay:enter()
 	love.mouse.setVisible(false)

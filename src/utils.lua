@@ -2,12 +2,12 @@ logger = {
     content = {},
     stylel = {},
     styles = {
-        white = {r=255, g=255, b=255},
-        red = {r=255,g=127,b=127},
-        yellow = {r=255, g=255, b=127},
-        green = {r=191, g=255, b=127},
-        blue = {r=127, g=159, b=255},
-        default = {r=224, g=224, b=224},
+        white = {r=255/255, g=255/255, b=255/255},
+        red = {r=255/255,g=127/255,b=127/255},
+        yellow = {r=255/255, g=255/255, b=127/255},
+        green = {r=191/255, g=255/255, b=127/255},
+        blue = {r=127/255, g=159/255, b=255/255},
+        default = {r=224/255, g=224/255, b=224/255},
     },
     count = 0,
     limit = 32,
@@ -44,8 +44,6 @@ function logger.error(text)
 end
 
 function logger.draw(x, y)
-love.graphics.push()
-    love.graphics.scale(0.5, 0.5)
     local index, style, text
     prefix = ''
     -- default position parameters:
@@ -53,6 +51,8 @@ love.graphics.push()
     if (y == nil) then y = 16 end
     -- draw lines:
     for i = 1, logger.count do
+    love.graphics.push()
+        love.graphics.scale(0.5, 0.5)
         style = logger.stylel[i]
         text = prefix .. logger.content[i]
         -- choose white/black outline:
@@ -71,6 +71,8 @@ love.graphics.push()
         love.graphics.print(text, x, y)
         -- concatenate prefix:
         prefix = prefix .. '\n'
+    love.graphics.pop()
     end
-love.graphics.pop()
+    -- reset color: love.graphics.pop() only resets transformations
+    love.graphics.setColor(1, 1, 1)
 end
