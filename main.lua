@@ -66,9 +66,9 @@ function love.load()
 	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
 	player = Player(vec2(360, 360), vec2(1.5, 1.5))
 	-- For test
-	World:add_entity(Enemy(vec2(300, 300), 0, vec2(1.5, 1.5), 100))
-	World:add_entity(Enemy(vec2(200, 300), 0, vec2(1.5, 1.5), 100))
-	World:add_entity(Enemy(vec2(500, 300), 0, vec2(1.5, 1.5), 100))
+	World:add_entity(Enemy:pooled(vec2(300, 300), 0, vec2(1.5, 1.5), 100))
+	World:add_entity(Enemy:pooled(vec2(200, 300), 0, vec2(1.5, 1.5), 100))
+	World:add_entity(Enemy:pooled(vec2(500, 300), 0, vec2(1.5, 1.5), 100))
 	
 	World:add_entity(cursor)
 	World:add_entity(player)
