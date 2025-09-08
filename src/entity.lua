@@ -103,7 +103,7 @@ function Entity:drawHitbox()
         corners[1].x, corners[1].y
     )
     vec2.release(hs, corners[1], corners[2], corners[3], corners[4])
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(PALETTE.white)
 end
 
 function Entity:free()

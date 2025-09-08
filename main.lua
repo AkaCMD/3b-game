@@ -21,6 +21,7 @@ require("src.enemy_spawner")
 require("src.enemy")
 require("src.ui")
 require("src.utils")
+require("src.edge")
 
 World = World()
 
@@ -37,8 +38,10 @@ local enemySpawner
 
 local title = "Bravo! Border Breaker"
 local default_font
-THEME_COLOR = {
-	
+PALETTE = {
+	white = {1, 1, 1, 1},
+	red   =	{1, 0, 0.267, 1},
+	green = {0, 0.58, 0.47, 1},
 }
 bus = Pubsub()
 
@@ -70,7 +73,11 @@ function love.load()
 	World:add_entity(Enemy:pooled(vec2(300, 300), 0, vec2(1.5, 1.5), 100))
 	World:add_entity(Enemy:pooled(vec2(200, 300), 0, vec2(1.5, 1.5), 100))
 	World:add_entity(Enemy:pooled(vec2(500, 300), 0, vec2(1.5, 1.5), 100))
-	
+
+	World:add_entity(Edge(vec2(150, 150), vec2(360, 300), EdgeType.Portal))
+	World:add_entity(Edge(vec2(200, 200), vec2(400, 350), EdgeType.SpawnEnemy))
+	World:add_entity(Edge(vec2(300, 300), vec2(500, 450), EdgeType.Damagable))
+
 	World:add_entity(cursor)
 	World:add_entity(player)
 	enemySpawner = EnemySpawner()
@@ -118,7 +125,7 @@ function state.gameplay:enter()
 end
 
 local angle = 0
-local playerHealth = UI(0, 30, {1, 0, 0.267, 1}, 120, SCREEN_HEIGHT - 80, true, 0)
+local playerHealth = UI(0, 30, PALETTE.red, 120, SCREEN_HEIGHT - 80, true, 0)
 function state.gameplay:draw()
     effect(function()
 
@@ -131,7 +138,7 @@ function state.gameplay:draw()
     	love.graphics.setLineWidth(2)
     	-- love.graphics.setColor(1, 0, 0.267, 1)
     	-- love.graphics.print("Ready or not, give me all that you've got!", 15, 15)
-    	love.graphics.setColor(1, 1, 1, 1)
+    	love.graphics.setColor(PALETTE.white)
 		if level.isRotating then
       		drawRotatedRectangle("line", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 480 + 20, 480 + 20, angle)
 		else
@@ -182,8 +189,8 @@ function state.gameplay:keypressed(key)
 end
 
 -- Scene: menu
-local title = UI(title, 32, {1, 0, 0.267, 1}, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100, true, 0)
-local pressKey = UI("Press Any Key To Fight", 16, {1, 1, 1, 1}, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 80, true, 0)
+local title = UI(title, 32, PALETTE.red, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100, true, 0)
+local pressKey = UI("Press Any Key To Fight", 16, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 80, true, 0)
 function state.menu:enter()
 	local function titleWobbling()
 		Flux.to(title, 2, {rot = -0.1})
@@ -211,7 +218,7 @@ function state.menu:keypressed(key)
 end
 
 -- Scene: pause
-local pauseText = UI("PAUSE", 40, {1, 1, 1, 1}, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, true, 0)
+local pauseText = UI("PAUSE", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, true, 0)
 function state.pause:draw()
 	pauseText:draw()
 end

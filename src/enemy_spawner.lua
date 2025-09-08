@@ -21,6 +21,5 @@ function EnemySpawner:update(dt)
 end
 
 function EnemySpawner:spawnWave()
-    print("Callback")
     World:add_entity(Enemy:pooled(vec2(300, 300), 0, vec2(1.5, 1.5), 100))
 end

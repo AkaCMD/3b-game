@@ -41,6 +41,6 @@ love.graphics.push()
         love.graphics.print(self.content, 0, 0)
     end
 
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(PALETTE.white)
 love.graphics.pop()
 end
