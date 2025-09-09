@@ -17,6 +17,8 @@ function Enemy:new(pos, rot, scale, speed)
 end
 
 function Enemy:update(dt, level)
+	-- TODO: add cooldown
+	World:add_entity(self:shoot())
 	if player and player.pos then
 		local dir = (player.pos - self.pos):normalise_inplace()
 		local targetAngle = math.atan2(dir.y, dir.x)
@@ -52,6 +54,13 @@ function Enemy:free()
 	--why i can't just write Entity:free() ?
 	self.isValid = false
 	Enemy.release(self)
+end
+
+function Enemy:shoot()
+	local dir = vec2(math.cos(self.rotation - math.pi/2), math.sin(self.rotation - math.pi/2))
+	local spawnPos = self.pos:copy() + 10 * dir
+	-- TODO: enemy bullet
+	return Bullet:pooled(spawnPos, self.rotation - math.pi/2, vec2(2, 2), 8)
 end
 
 make_pooled(Enemy, 120)
