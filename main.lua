@@ -119,13 +119,12 @@ function love.draw()
 	logger.draw()
 end
 
--- Scene: gameplay
+-- ============ Scene: Gameplay ============
 function state.gameplay:enter()
 	love.mouse.setVisible(false)
 end
 
 local angle = 0
-local playerHealth = UI(0, 30, PALETTE.red, 120, SCREEN_HEIGHT - 80, true, 0)
 function state.gameplay:draw()
     effect(function()
 
@@ -150,7 +149,7 @@ function state.gameplay:draw()
 			entity:drawHitbox()
 		end
 
-		playerHealth:draw()
+		drawHeartShapes(vec2(110, SCREEN_HEIGHT - 90))
     end)
 end
 
@@ -176,10 +175,6 @@ function state.gameplay:update(dt)
 
 	-- Check collisions
 	World:check_collisions()
-
-	-- Update UI elements
-	-- TODO: display heart shape
-	playerHealth.content = player.health
 end
 
 function state.gameplay:keypressed(key)
@@ -187,8 +182,9 @@ function state.gameplay:keypressed(key)
 		sceneManager:push(state.pause)
 	end
 end
+-- =====================================
 
--- Scene: menu
+-- ============ Scene: Menu ============
 local title = UI(title, 32, PALETTE.red, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100, true, 0)
 local pressKey = UI("Press Any Key To Fight", 16, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 80, true, 0)
 function state.menu:enter()
@@ -216,8 +212,9 @@ function state.menu:keypressed(key)
 		sceneManager:enter(state.gameplay)
 	end
 end
+-- =====================================
 
--- Scene: pause
+-- ============ Scene: Pause ============
 local pauseText = UI("PAUSE", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, true, 0)
 function state.pause:draw()
 	pauseText:draw()
@@ -228,7 +225,20 @@ function state.pause:keypressed(key)
 		sceneManager:pop()
 	end
 end
+-- =====================================
 
 function startShake(duration, magnitude)
 	t, shakeDuration, shakeMagnitude = 0, duration or 1, magnitude or 5
+end
+
+---@param startPos vec2
+function drawHeartShapes(startPos)
+	local img = Assets.images.heart
+	local size = img:getHeight()
+	local pos = startPos
+	local scale = 3
+	for i = 1, player.health do
+		love.graphics.draw(img, pos.x, pos.y, 0, scale, scale)
+		pos = vec2(pos.x + size*scale + 10, pos.y)
+	end
 end

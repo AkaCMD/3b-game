@@ -9,7 +9,7 @@ Bullet = class({
 function Bullet:new(pos, rot, scale, speed)
 	---@class Bullet: Entity
 	self:super(pos, scale)
-	self.speed = speed
+	self.speed = speed or 8
 	self.hitbox = vec2(4, 4)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.liveTimer = 0
