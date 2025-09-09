@@ -138,17 +138,22 @@ function state.gameplay:draw()
     	-- love.graphics.setColor(1, 0, 0.267, 1)
     	-- love.graphics.print("Ready or not, give me all that you've got!", 15, 15)
     	love.graphics.setColor(PALETTE.white)
+
+		-- Draw level bound
 		if level.isRotating then
       		drawRotatedRectangle("line", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 480 + 20, 480 + 20, angle)
 		else
 			drawRotatedRectangle("line", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 480 + 20, 480 + 20, 0)
 		end
       	level:draw()
+
+		-- Draw entities
 		for _, entity in ipairs(World.entities) do
 			entity:draw()
 			entity:drawHitbox()
 		end
 
+		-- Draw UI elements
 		drawHeartShapes(vec2(110, SCREEN_HEIGHT - 90))
     end)
 end
@@ -175,6 +180,8 @@ function state.gameplay:update(dt)
 
 	-- Check collisions
 	World:check_collisions()
+
+	-- Update UI elements
 end
 
 function state.gameplay:keypressed(key)
@@ -227,6 +234,8 @@ function state.pause:keypressed(key)
 end
 -- =====================================
 
+---@param duration number
+---@param magnitude number
 function startShake(duration, magnitude)
 	t, shakeDuration, shakeMagnitude = 0, duration or 1, magnitude or 5
 end
