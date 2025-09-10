@@ -38,11 +38,9 @@ function World:check_collisions()
 			local a, b = self.entities[i], self.entities[j]
 			if a:overlaps(b) then
 				-- If enemy got shot
-				if (a:is(Enemy) and b:is(Bullet)) or (a:is(Bullet) and b:is(Enemy)) then
-					a:onCollide(b)
-					b:onCollide(a)
-					print("Collision between " .. tostring(a) .. " and " .. tostring(b))
-				end
+				a:onCollide(b)
+				b:onCollide(a)
+				print("Collision between " .. tostring(a) .. " and " .. tostring(b))
 				local msv = a:resolveCollision(b, 0.5)
 			end
 		end

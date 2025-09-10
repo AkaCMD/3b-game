@@ -56,5 +56,5 @@ function Player:shoot()
 	local dir = vec2(math.cos(self.rotation - math.pi/2), math.sin(self.rotation - math.pi/2))
 	local spawnPos = self.pos:copy() + 10 * dir
 
-	return Bullet:pooled(spawnPos, self.rotation - math.pi/2, vec2(3, 3), 8)
+	return Bullet:pooled(spawnPos, self.rotation - math.pi/2, vec2(3, 3), 8, BulletType.PlayerBullet)
 end

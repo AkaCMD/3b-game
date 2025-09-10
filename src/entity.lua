@@ -109,3 +109,7 @@ end
 function Entity:free()
 	self.isValid = false
 end
+
+---@param other Entity
+function Entity:onCollide(other)
+end

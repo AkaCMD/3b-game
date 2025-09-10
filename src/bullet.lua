@@ -6,7 +6,14 @@ Bullet = class({
 	default_tostring = true
 })
 
-function Bullet:new(pos, rot, scale, speed)
+BulletType = { PlayerBullet = 1, EnemyBullet = 2}
+
+---@param pos vec2
+---@param rot number
+---@param scale vec2
+---@param speed number
+---@param type integer Type of the bullet
+function Bullet:new(pos, rot, scale, speed, type)
 	---@class Bullet: Entity
 	self:super(pos, scale)
 	self.speed = speed or 8
@@ -14,6 +21,7 @@ function Bullet:new(pos, rot, scale, speed)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.liveTimer = 0
 	self.rotation = rot
+	self.bulletType = type or BulletType.PlayerBullet
 end
 
 function Bullet:update(dt, level)
@@ -25,23 +33,24 @@ function Bullet:update(dt, level)
 	end
 	self.liveTimer = self.liveTimer + dt
 
-    -- if not level:containsPoint(self.pos) then
-    --     self:free()
-    -- end
+    if self.bulletType == BulletType.EnemyBullet and (not level:containsPoint(self.pos)) then
+        self:free()
+    end
     self.pos = level:wrapPosition(self.pos)
 end
 
 function Bullet:draw()
 	local img = Assets.images.bullet
-	love.graphics.draw(img, self.pos.x, self.pos.y, self.rotation + math.pi/2, self.scale.x, self.scale.y, img:getWidth()/2, img:getHeight()/2)
-end
-
-function Bullet:onCollide(enemy)
-    self:free()
+	if self.bulletType == BulletType.PlayerBullet then
+		love.graphics.draw(img, self.pos.x, self.pos.y, self.rotation + math.pi/2, self.scale.x, self.scale.y, img:getWidth()/2, img:getHeight()/2)
+	elseif self.bulletType == BulletType.EnemyBullet then
+		love.graphics.setColor(PALETTE.red)
+		love.graphics.draw(img, self.pos.x, self.pos.y, self.rotation + math.pi/2, self.scale.x, self.scale.y, img:getWidth()/2, img:getHeight()/2)
+		love.graphics.setColor(PALETTE.white)
+	end
 end
 
 function Bullet:free()
-	--why i can't just write Entity:free() ?
 	self.isValid = false
 	Bullet.release(self)
 end

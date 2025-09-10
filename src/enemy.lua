@@ -14,15 +14,22 @@ function Enemy:new(pos, rot, scale, speed)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.rotation = rot or 0
 	self.health = 1
+
+	self.shootCooldown = 0.3
+	self.lastShotTime = 0
 end
 
 function Enemy:update(dt, level)
-	-- TODO: add cooldown
-	World:add_entity(self:shoot())
+	-- Shoot cooldown
+	self.lastShotTime = self.lastShotTime + dt
+	if self.lastShotTime >= self.shootCooldown then
+		World:add_entity(self:shoot())
+		self.lastShotTime = 0
+	end
+
 	if player and player.pos then
 		local dir = (player.pos - self.pos):normalise_inplace()
 		local targetAngle = math.atan2(dir.y, dir.x)
-		-- self.rotation = targetAngle
         local lerpSpeed = 3.0
         local angleDiff = (targetAngle - self.rotation + math.pi) % (2 * math.pi) - math.pi
         self.rotation = self.rotation + angleDiff * lerpSpeed * dt
@@ -41,13 +48,16 @@ function Enemy:draw()
 	love.graphics.draw(img, self.pos.x, self.pos.y, self.rotation + math.pi/2, self.scale.x, self.scale.y, img:getWidth()/2, img:getHeight()/2)
 end
 
-function Enemy:onCollide(bullet)
-    self.health = self.health - 1
-    if self.health <= 0 then
-		bus:publish("enemy_killed")
-        self:free()
-    end
-    bullet:free()
+---@param other Entity
+function Enemy:onCollide(other)
+	if other:is(Bullet) and other.bulletType == BulletType.PlayerBullet then
+		self.health = self.health - 1
+    	if self.health <= 0 then
+			bus:publish("enemy_killed")
+        	self:free()
+    	end
+    	other:free()
+	end
 end
 
 function Enemy:free()
@@ -57,10 +67,9 @@ function Enemy:free()
 end
 
 function Enemy:shoot()
-	local dir = vec2(math.cos(self.rotation - math.pi/2), math.sin(self.rotation - math.pi/2))
+	local dir = vec2(math.cos(self.rotation), math.sin(self.rotation))
 	local spawnPos = self.pos:copy() + 10 * dir
-	-- TODO: enemy bullet
-	return Bullet:pooled(spawnPos, self.rotation - math.pi/2, vec2(2, 2), 8)
+	return Bullet:pooled(spawnPos, self.rotation, vec2(2, 2), 4, BulletType.EnemyBullet)
 end
 
 make_pooled(Enemy, 120)
