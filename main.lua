@@ -55,6 +55,9 @@ state.gameplay = {}
 state.menu = {}
 state.pause = {}
 
+---@type number Timer
+local timer = 0.0
+
 function love.load()
 	love.keyboard.setTextInput(false)
 	love.window.setTitle(title)
@@ -120,6 +123,7 @@ function love.draw()
 end
 
 -- ============ Scene: Gameplay ============
+local timerUI = UI(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
 function state.gameplay:enter()
 	love.mouse.setVisible(false)
 end
@@ -155,11 +159,12 @@ function state.gameplay:draw()
 
 		-- Draw UI elements
 		drawHeartShapes(vec2(110, SCREEN_HEIGHT - 90))
+		timerUI:draw()
     end)
 end
 
 function state.gameplay:update(dt)
-
+	timer = timer + dt
 	if t < shakeDuration then
 		t = t + dt
 	end
@@ -182,6 +187,13 @@ function state.gameplay:update(dt)
 	World:check_collisions()
 
 	-- Update UI elements
+	local function formatTimer(timer)
+    	local minutes = math.floor(timer / 60)
+    	local seconds = math.floor(timer % 60)
+    	local milliseconds = math.floor((timer * 1000) % 1000 / 10)
+    	return string.format("%02d:%02d:%02d", minutes, seconds, milliseconds)
+	end
+	timerUI.content = formatTimer(timer)
 end
 
 function state.gameplay:keypressed(key)
