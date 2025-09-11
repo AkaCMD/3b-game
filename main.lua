@@ -68,6 +68,8 @@ local function initGame()
 	enemySpawner = EnemySpawner()
 
 	player = Player(vec2(360, 360), vec2(1.5, 1.5))
+	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
+	World:add_entity(cursor)
 	World:add_entity(player)
 
 	World:add_entity(Enemy:pooled(vec2(300, 300), 0, vec2(1.5, 1.5), 100))
