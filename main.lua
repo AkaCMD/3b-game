@@ -59,21 +59,17 @@ state.gameover = {}
 ---@type number Timer
 local timer = 0.0
 
-function love.load()
-	love.keyboard.setTextInput(false)
-	love.window.setTitle(title)
-	love.window.setMode(SCREEN_WIDTH, SCREEN_HEIGHT)
-	default_font = Assets.fonts.RasterForgeRegular(16)
-	love.graphics.setFont(default_font)
+local function initGame()
+	World:clear()
 
-	-- love.mouse.setGrabbed(true)
+	timer = 0.0
 
 	level = Level(vec2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2), 480, 480, 0, false)
+	enemySpawner = EnemySpawner()
 
-	effect = Moonshine(Moonshine.effects.crt).chain(Moonshine.effects.glow)
-	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
 	player = Player(vec2(360, 360), vec2(1.5, 1.5))
-	-- For test
+	World:add_entity(player)
+
 	World:add_entity(Enemy:pooled(vec2(300, 300), 0, vec2(1.5, 1.5), 100))
 	World:add_entity(Enemy:pooled(vec2(200, 300), 0, vec2(1.5, 1.5), 100))
 	World:add_entity(Enemy:pooled(vec2(500, 300), 0, vec2(1.5, 1.5), 100))
@@ -82,9 +78,20 @@ function love.load()
 	World:add_entity(Edge(vec2(200, 200), vec2(400, 350), EdgeType.SpawnEnemy))
 	World:add_entity(Edge(vec2(300, 300), vec2(500, 450), EdgeType.Damagable))
 
-	World:add_entity(cursor)
-	World:add_entity(player)
-	enemySpawner = EnemySpawner()
+	timerUI = UI(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
+end
+
+function love.load()
+	love.keyboard.setTextInput(false)
+	love.window.setTitle(title)
+	love.window.setMode(SCREEN_WIDTH, SCREEN_HEIGHT)
+	default_font = Assets.fonts.RasterForgeRegular(16)
+	love.graphics.setFont(default_font)
+	-- love.mouse.setGrabbed(true)
+	effect = Moonshine(Moonshine.effects.crt).chain(Moonshine.effects.glow)
+
+	initGame()
+
 	sceneManager = Roomy.new()
 	sceneManager:hook()
 	sceneManager:enter(state.menu)
@@ -167,7 +174,7 @@ end
 function state.gameplay:update(dt)
 	-- Check conditions
 	if player.health <= 0 then
-		sceneManager:enter(state.gameover, timer)
+		sceneManager:enter(state.gameover)
 	end
 
 	-- Update timers
@@ -258,6 +265,13 @@ function state.gameover:draw()
 	resultText.content = "You Live for " .. formatTimer(timer)
 	resultText:draw()
 	hintText:draw()
+end
+
+function state.gameover:keypressed(key)
+	if key == "r" then
+		initGame()
+		sceneManager:enter(state.gameplay)
+	end
 end
 -- =====================================
 

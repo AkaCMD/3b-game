@@ -46,3 +46,11 @@ function World:check_collisions()
 		end
 	end
 end
+
+function World:clear()
+    for i = #self.entities, 1, -1 do
+        local entity = self.entities[i]
+        entity:free()
+        table.remove(self.entities, i)
+    end
+end
