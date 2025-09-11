@@ -58,3 +58,11 @@ function Player:shoot()
 
 	return Bullet:pooled(spawnPos, self.rotation - math.pi/2, vec2(3, 3), 8, BulletType.PlayerBullet)
 end
+
+---@param other Entity
+function Player:onCollide(other)
+	if other:is(Enemy) or (other:is(Bullet) and other.bulletType == BulletType.EnemyBullet) then
+		self.health = self.health - 1
+		other:free()
+	end
+end
