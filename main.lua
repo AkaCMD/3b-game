@@ -54,6 +54,7 @@ local state = {}
 state.gameplay = {}
 state.menu = {}
 state.pause = {}
+state.gameover = {}
 
 ---@type number Timer
 local timer = 0.0
@@ -164,21 +165,29 @@ function state.gameplay:draw()
 end
 
 function state.gameplay:update(dt)
+	-- Check conditions
+	if player.health <= 0 then
+		sceneManager:enter(state.gameover, timer)
+	end
+
+	-- Update timers
 	timer = timer + dt
 	if t < shakeDuration then
 		t = t + dt
 	end
 
 	lastShotTime = lastShotTime + dt
+	angle = angle + dt * 0.8
+	-- Player shoots bullet
 	if love.mouse.isDown(1) and lastShotTime >= shootCooldown then
         local newBullet = player:shoot()
 		World:add_entity(newBullet)
         lastShotTime = 0
     end
 
+	-- Update other systems
 	level:update(dt)
 	enemySpawner:update(dt)
-	angle = angle + dt * 0.8
 
 	-- Update all entities
 	World:update(dt, level)
@@ -187,12 +196,6 @@ function state.gameplay:update(dt)
 	World:check_collisions()
 
 	-- Update UI elements
-	local function formatTimer(timer)
-    	local minutes = math.floor(timer / 60)
-    	local seconds = math.floor(timer % 60)
-    	local milliseconds = math.floor((timer * 1000) % 1000 / 10)
-    	return string.format("%02d:%02d:%02d", minutes, seconds, milliseconds)
-	end
 	timerUI.content = formatTimer(timer)
 end
 
@@ -246,6 +249,18 @@ function state.pause:keypressed(key)
 end
 -- =====================================
 
+-- ============ Scene: GameOver ============
+local gameoverText = UI("GAMEOVER", 40, PALETTE.red, SCREEN_WIDTH/2, SCREEN_HEIGHT/2-150, true, 0)
+local resultText = UI("You Live For xx", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2-50, true, 0)
+local hintText = UI("R to Retry...", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2+50, true, 0)
+function state.gameover:draw()
+	gameoverText:draw()
+	resultText.content = "You Live for " .. formatTimer(timer)
+	resultText:draw()
+	hintText:draw()
+end
+-- =====================================
+
 ---@param duration number
 ---@param magnitude number
 function startShake(duration, magnitude)
@@ -262,4 +277,11 @@ function drawHeartShapes(startPos)
 		love.graphics.draw(img, pos.x, pos.y, 0, scale, scale)
 		pos = vec2(pos.x + size*scale + 10, pos.y)
 	end
+end
+
+function formatTimer(timer)
+    local minutes = math.floor(timer / 60)
+    local seconds = math.floor(timer % 60)
+    local milliseconds = math.floor((timer * 1000) % 1000 / 10)
+    return string.format("%02d:%02d:%02d", minutes, seconds, milliseconds)
 end
