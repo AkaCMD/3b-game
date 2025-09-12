@@ -16,7 +16,7 @@ EdgeType = {SpawnEnemy = 1, Portal = 2, Damagable = 3}
 function Edge:new(start, finish, edgeTypeIndex)
 	---@class Edge:Entity
 	self.midPos = vec2((start.x + finish.x) / 2, (start.y + finish.y) / 2)
-	self:super(self.midPos, vec2(1, 1))
+	self:super(self.midPos, vec2(1, 1), COLLIDER_TYPE.static)
 	self.startPos = start
 	self.endPos = finish
 	self.length = vec2.length(finish:vector_sub(start))

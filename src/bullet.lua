@@ -15,7 +15,7 @@ BulletType = { PlayerBullet = 1, EnemyBullet = 2}
 ---@param type integer Type of the bullet
 function Bullet:new(pos, rot, scale, speed, type)
 	---@class Bullet: Entity
-	self:super(pos, scale)
+	self:super(pos, scale, COLLIDER_TYPE.trigger)
 	self.speed = speed or 8
 	self.hitbox = vec2(4, 4)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)

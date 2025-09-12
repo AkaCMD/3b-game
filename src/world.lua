@@ -35,13 +35,29 @@ end
 function World:check_collisions()
     for i = 1, #self.entities - 1 do
 		for j = i + 1, #self.entities do
+			---@type Entity, Entity
 			local a, b = self.entities[i], self.entities[j]
 			if a:overlaps(b) then
 				-- If enemy got shot
 				a:onCollide(b)
 				b:onCollide(a)
 				print("Collision between " .. tostring(a) .. " and " .. tostring(b))
-				local msv = a:resolveCollision(b, 0.5)
+
+				local at, bt = a.colliderType, b.colliderType
+				if at == COLLIDER_TYPE.trigger or bt == COLLIDER_TYPE.trigger then
+					-- trigger vs trigger
+				elseif at == COLLIDER_TYPE.static and bt == COLLIDER_TYPE.static then
+					-- static vs static
+				elseif at == COLLIDER_TYPE.dynamic and bt == COLLIDER_TYPE.static then
+					-- dynamic vs static
+					a:resolveCollision(b, 1.0)
+				elseif at == COLLIDER_TYPE.static and bt == COLLIDER_TYPE.dynamic then
+					-- static vs dynamic
+					b:resolveCollision(a, 1.0)
+				elseif at == COLLIDER_TYPE.dynamic and bt == COLLIDER_TYPE.dynamic then
+					-- dynamic vs dynamic
+					a:resolveCollision(b, 0.5)
+				end
 			end
 		end
 	end

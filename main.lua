@@ -260,7 +260,7 @@ end
 
 -- ============ Scene: GameOver ============
 local gameoverText = UI("GAMEOVER", 40, PALETTE.red, SCREEN_WIDTH/2, SCREEN_HEIGHT/2-150, true, 0)
-local resultText = UI("You Live For xx", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2-50, true, 0)
+local resultText = UI("You Lived For xx", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2-50, true, 0)
 local hintText = UI("R to Retry...", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2+50, true, 0)
 function state.gameover:draw()
 	gameoverText:draw()

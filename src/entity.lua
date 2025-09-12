@@ -4,6 +4,12 @@ Entity = class({
 	default_tostring = true
 })
 
+COLLIDER_TYPE = {
+    dynamic = 0,
+    static = 1,
+    trigger = 2,
+}
+
 ---Make an entity
 ---@param pos vec2
 ---@param scale vec2
@@ -16,7 +22,8 @@ Entity = class({
 ---@field hasCollision boolean
 ---@field isValid boolean
 ---@field health integer
-function Entity:new(pos, scale)
+---@field colliderType integer
+function Entity:new(pos, scale, collider_type)
     self.rotation = 0
 	self.pos = pos or vec2(0, 0)
 	self.scale = scale or vec2(1, 1)
@@ -25,6 +32,7 @@ function Entity:new(pos, scale)
 	self.hasCollision = true
 	self.isValid = true
 	self.health = 3
+    self.colliderType = collider_type or COLLIDER_TYPE.dynamic
 end
 
 function Entity:update(dt)
@@ -76,7 +84,13 @@ function Entity:drawHitbox()
 		return
 	end
 
-    love.graphics.setColor(1, 0, 0, 1) -- Red outline
+    if self.colliderType == COLLIDER_TYPE.dynamic then
+        love.graphics.setColor(1, 0, 0, 1)  -- red
+    elseif self.colliderType == COLLIDER_TYPE.static then
+        love.graphics.setColor(0.5, 0.5, 0.5, 0.7)  -- blue
+    elseif self.colliderType == COLLIDER_TYPE.trigger then
+        love.graphics.setColor(1.0, 1.0, 0.2, 0.5)  -- yellow
+    end
     local hs = self.hs:pooled_copy():vector_mul(self.scale)
     local corners = {
         vec2:pooled(self.pos.x - hs.x, self.pos.y - hs.y), -- Top-left
