@@ -13,4 +13,7 @@
         "class",
         "intersect"
     ],
+    "vim.handleKeys": {
+        "<C-p>": false
+    }
 }
