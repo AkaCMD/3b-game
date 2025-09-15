@@ -109,7 +109,7 @@ function love.load()
 	sceneManager = Roomy.new()
 	sceneManager:hook()
 	sceneManager:enter(state.menu)
-ss
+
 	-- Init event bus
 	bus:subscribe("enemy_killed", function ()
 		startShake(0.2, 0.15)
