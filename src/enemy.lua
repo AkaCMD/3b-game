@@ -73,3 +73,37 @@ function Enemy:shoot()
 end
 
 make_pooled(Enemy, 120)
+
+-- Builder Pattern
+Enemy.Builder = setmetatable({}, {__index = Entity.Builder })
+Enemy.Builder.__index = Enemy.Builder
+
+function Enemy.Builder:new()
+    local b = Entity.Builder.new(self)
+    b.speed          = 10
+    b.shootCooldown  = 0.3
+    b.lastShotTime   = 0
+    return setmetatable(b, self)
+end
+
+function Enemy.Builder:setSpeed(speed)
+    self.speed = speed
+    return self
+end
+
+function Enemy.Builder:setShootCooldown(cd)
+    self.shootCooldown = cd
+    return self
+end
+
+function Enemy.Builder:build()
+	local e = Enemy(self.pos, self.rotation, self.scale, self.speed)
+    e.hitbox       = self.hitbox
+    e.hs           = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
+    e.hasCollision = self.hasCollision
+    e.health       = self.health
+    e.colliderType = self.colliderType
+    e.shootCooldown = self.shootCooldown
+    e.lastShotTime  = self.lastShotTime
+    return e
+end

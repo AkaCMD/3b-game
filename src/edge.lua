@@ -1,5 +1,4 @@
--- TODO: make it static
--- add collision shape
+-- TODO: add collision shape
 -- different functionalities
 Edge = class({
 	name = "Edge",
