@@ -132,7 +132,7 @@ end
 
 -- Builder Pattern
 Entity.Builder = {}
-Entity.Builder.index = Enemy.Builder
+Entity.Builder.index = Entity.Builder
 
 function Entity.Builder:new()
     return setmetatable({
@@ -143,7 +143,7 @@ function Entity.Builder:new()
         hasCollision = true,
         isValid      = true,
         health       = 3,
-        colliderType = COLLIDER_TYPE.dynamic
+        colliderType = COLLIDER_TYPE.dynamic,
     }, self)
 end
 
@@ -184,7 +184,7 @@ function Entity.Builder:setColliderType(t)
 end
 
 function Entity.Builder:build()
-    local e = Entity:new(self.pos, self.scale, self.colliderType)
+    local e = Entity(self.pos, self.scale, self.colliderType)
 
     e.rotation     = self.rotation
     e.hitbox       = self.hitbox

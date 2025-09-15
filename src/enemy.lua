@@ -75,35 +75,85 @@ end
 make_pooled(Enemy, 120)
 
 -- Builder Pattern
-Enemy.Builder = setmetatable({}, {__index = Entity.Builder })
+Enemy.Builder = {}
 Enemy.Builder.__index = Enemy.Builder
 
 function Enemy.Builder:new()
-    local b = Entity.Builder.new(self)
-    b.speed          = 10
-    b.shootCooldown  = 0.3
-    b.lastShotTime   = 0
-    return setmetatable(b, self)
+    local builder = setmetatable({}, Enemy.Builder)
+    builder.pos = vec2(0, 0)
+    builder.scale = vec2(1, 1)
+    builder.rotation = 0
+    builder.hitbox = vec2(12, 12)
+    builder.hasCollision = true
+    builder.health = 1
+    builder.colliderType = COLLIDER_TYPE.dynamic
+    builder.speed = 10
+    builder.shootCooldown = 0.3
+    builder.lastShotTime = 0
+    return builder
 end
 
-function Enemy.Builder:setSpeed(speed)
+function Enemy.Builder:withPosition(x, y)
+    self.pos = vec2(x, y)
+    return self
+end
+
+function Enemy.Builder:withScale(sx, sy)
+    self.scale = vec2(sx, sy)
+    return self
+end
+
+function Enemy.Builder:withRotation(r)
+    self.rotation = r
+    return self
+end
+
+function Enemy.Builder:withHitbox(width, height)
+    self.hitbox = vec2(width, height)
+    return self
+end
+
+function Enemy.Builder:withCollision(flag)
+    self.hasCollision = flag
+    return self
+end
+
+function Enemy.Builder:withHealth(hp)
+    self.health = hp
+    return self
+end
+
+function Enemy.Builder:withColliderType(t)
+    self.colliderType = t
+    return self
+end
+
+function Enemy.Builder:withSpeed(speed)
     self.speed = speed
     return self
 end
 
-function Enemy.Builder:setShootCooldown(cd)
+function Enemy.Builder:withShootCooldown(cd)
     self.shootCooldown = cd
     return self
 end
 
+function Enemy.Builder:withLastShotTime(time)
+    self.lastShotTime = time
+    return self
+end
+
 function Enemy.Builder:build()
-	local e = Enemy(self.pos, self.rotation, self.scale, self.speed)
-    e.hitbox       = self.hitbox
-    e.hs           = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
-    e.hasCollision = self.hasCollision
-    e.health       = self.health
-    e.colliderType = self.colliderType
-    e.shootCooldown = self.shootCooldown
-    e.lastShotTime  = self.lastShotTime
-    return e
+    local enemy = Enemy:pooled(self.pos, self.rotation, self.scale, self.speed)
+
+    enemy.hitbox = self.hitbox
+    enemy.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
+    enemy.hasCollision = self.hasCollision
+    enemy.health = self.health
+    enemy.colliderType = self.colliderType
+
+    enemy.shootCooldown = self.shootCooldown
+    enemy.lastShotTime = self.lastShotTime
+
+    return enemy
 end
