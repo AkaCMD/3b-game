@@ -168,17 +168,17 @@ function Entity.Builder:withHitbox(width, height)
 end
 
 ---@param flag boolean
-function Entity.Builder:setCollision(flag)
+function Entity.Builder:withCollision(flag)
     self.hasCollision = flag
     return self
 end
 
-function Entity.Builder:setHealth(hp)
+function Entity.Builder:withHealth(hp)
     self.health = hp
     return self
 end
 
-function Entity.Builder:setColliderType(t)
+function Entity.Builder:withColliderType(t)
     self.colliderType = t
     return self
 end

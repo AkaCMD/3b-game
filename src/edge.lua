@@ -1,12 +1,11 @@
--- TODO: add collision shape
--- different functionalities
+-- TODO: different functionalities
 Edge = class({
 	name = "Edge",
 	extends = Entity,
 	default_tostring = true
 })
 
-EdgeType = {SpawnEnemy = 1, Portal = 2, Damagable = 3}
+EdgeType = {Normal = 1, SpawnEnemy = 2, Portal = 3, Damagable = 4}
 
 ---@class Edge
 ---@param start vec2
@@ -14,17 +13,21 @@ EdgeType = {SpawnEnemy = 1, Portal = 2, Damagable = 3}
 ---@param edgeTypeIndex integer
 function Edge:new(start, finish, edgeTypeIndex)
 	---@class Edge:Entity
-	self.midPos = vec2((start.x + finish.x) / 2, (start.y + finish.y) / 2)
-	self:super(self.midPos, vec2(1, 1), COLLIDER_TYPE.static)
+	self:super(vec2((start.x + finish.x) / 2, (start.y + finish.y) / 2), vec2(1, 1), COLLIDER_TYPE.static)
 	self.startPos = start
 	self.endPos = finish
 	self.length = vec2.length(finish:vector_sub(start))
 	self.edgeType = edgeTypeIndex
+	if math.abs(finish.x - start.x) > math.abs(finish.y - start.y) then
+		self.hitbox = vec2(self.length, 5)
+	else
+		self.hitbox = vec2(5, self.length)
+	end
+	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 end
 
 ---@param num integer Number of enemy spawners in this edge
 function Edge:placeEnemySpawners(num)
-
 end
 
 function Edge:update()

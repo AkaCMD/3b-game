@@ -88,10 +88,6 @@ local function initGame()
 					:withScale(1.5, 1.5)
 					:build())
 
-	World:add_entity(Edge(vec2(150, 150), vec2(360, 300), EdgeType.Portal))
-	World:add_entity(Edge(vec2(200, 200), vec2(400, 350), EdgeType.SpawnEnemy))
-	World:add_entity(Edge(vec2(300, 300), vec2(500, 450), EdgeType.Damagable))
-
 	timerUI = UI(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
 end
 
