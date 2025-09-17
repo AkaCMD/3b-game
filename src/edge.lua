@@ -66,3 +66,18 @@ function Edge:draw()
 
 	love.graphics.setColor(PALETTE.white)
 end
+
+---@param other Entity
+function Edge:onCollide(other)
+	if not other:is(Player) then return end
+
+	if self.edgeType == EdgeType.Normal then
+		logger.info("Normal")
+	elseif self.edgeType == EdgeType.SpawnEnemy then
+		logger.info("SpawnEnemy")
+	elseif self.edgeType == EdgeType.Portal then
+		logger.info("Portal")
+	elseif self.edgeType == EdgeType.Damagable then
+		logger.info("Damagable")
+	end
+end

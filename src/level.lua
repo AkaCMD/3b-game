@@ -19,7 +19,7 @@ function Level:new(center, width, height, rotation, isRotating)
     -- add fucking edges
     World:add_entity(Edge(corners[1], corners[2], EdgeType.Portal))
 	World:add_entity(Edge(corners[2], corners[3], EdgeType.SpawnEnemy))
-	World:add_entity(Edge(corners[3], corners[4], EdgeType.Damagable))
+	-- World:add_entity(Edge(corners[3], corners[4], EdgeType.Damagable))
     World:add_entity(Edge(corners[4], corners[1], EdgeType.Normal))
 end
 
