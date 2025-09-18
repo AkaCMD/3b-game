@@ -76,3 +76,14 @@ function logger.draw(x, y)
     -- reset color: love.graphics.pop() only resets transformations
     love.graphics.setColor(1, 1, 1)
 end
+
+
+---@param a vec2
+---@param b vec2
+---@param t number
+---@return vec2
+function lerp_vec2(a, b, t)
+    local x = Mathx.lerp(a.x, b.x, t)
+    local y = Mathx.lerp(a.y, b.y, t)
+    return vec2(x, y)
+end

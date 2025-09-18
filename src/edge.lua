@@ -24,13 +24,30 @@ function Edge:new(start, finish, edgeTypeIndex)
 		self.hitbox = vec2(5, self.length)
 	end
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
+	---@type EnemySpawner[]
+	self.enemySpawners = {}
+
+	if self.edgeType == EdgeType.SpawnEnemy then
+		self:placeEnemySpawners(3)
+	end
 end
 
 ---@param num integer Number of enemy spawners in this edge
 function Edge:placeEnemySpawners(num)
+	---@type number
+	local interval = self.length / num
+	for i = 1, num do
+		local pos = lerp_vec2(self.startPos, self.endPos, (interval*i - interval/2) / self.length)
+		table.insert(self.enemySpawners, EnemySpawner(pos))
+	end
 end
 
-function Edge:update()
+function Edge:update(dt)
+	if self.edgeType == EdgeType.SpawnEnemy then
+		for _, spawner in ipairs(self.enemySpawners) do
+            spawner:update(dt)
+        end
+	end
 end
 
 function Edge:draw()

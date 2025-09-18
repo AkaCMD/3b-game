@@ -11,6 +11,7 @@ Moonshine = require("lib.moonshine")
 Roomy = require("lib.roomy")
 Flux = require("lib.flux.flux")
 Pubsub = require("lib.batteries.pubsub")
+Mathx = require("lib.batteries.mathx")
 require("src.entity")
 require("src.cursor")
 require("src.player")
@@ -33,8 +34,6 @@ local lastShotTime = 0
   
 local level
 local effect
-
-local enemySpawner
 
 local title = "Bravo! Border Breaker"
 local default_font
@@ -65,28 +64,27 @@ local function initGame()
 	timer = 0.0
 
 	level = Level(vec2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2), 480, 480, 0, false)
-	enemySpawner = EnemySpawner()
 
 	player = Player(vec2(360, 360), vec2(1.5, 1.5))
 	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
 	World:add_entity(cursor)
 	World:add_entity(player)
 
-	World:add_entity(Enemy.Builder:new()
-					:withPosition(300, 300)
-					:withSpeed(100)
-					:withScale(1.5, 1.5)
-					:build())
-	World:add_entity(Enemy.Builder:new()
-					:withPosition(200, 300)
-					:withSpeed(100)
-					:withScale(1.5, 1.5)
-					:build())
-	World:add_entity(Enemy.Builder:new()
-					:withPosition(500, 300)
-					:withSpeed(100)
-					:withScale(1.5, 1.5)
-					:build())
+	-- World:add_entity(Enemy.Builder:new()
+	-- 				:withPosition(300, 300)
+	-- 				:withSpeed(100)
+	-- 				:withScale(1.5, 1.5)
+	-- 				:build())
+	-- World:add_entity(Enemy.Builder:new()
+	-- 				:withPosition(200, 300)
+	-- 				:withSpeed(100)
+	-- 				:withScale(1.5, 1.5)
+	-- 				:build())
+	-- World:add_entity(Enemy.Builder:new()
+	-- 				:withPosition(500, 300)
+	-- 				:withSpeed(100)
+	-- 				:withScale(1.5, 1.5)
+	-- 				:build())
 
 	timerUI = UI(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
 end
@@ -204,7 +202,6 @@ function state.gameplay:update(dt)
 
 	-- Update other systems
 	level:update(dt)
-	enemySpawner:update(dt)
 
 	-- Update all entities
 	World:update(dt, level)
