@@ -16,7 +16,7 @@ BulletType = { PlayerBullet = 1, EnemyBullet = 2}
 function Bullet:new(pos, rot, scale, speed, type)
 	---@class Bullet: Entity
 	self:super(pos, scale, COLLIDER_TYPE.trigger)
-	self.speed = speed or 8
+	self.speed = speed or 480
 	self.hitbox = vec2(4, 4)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.liveTimer = 0
@@ -25,18 +25,13 @@ function Bullet:new(pos, rot, scale, speed, type)
 end
 
 function Bullet:update(dt, level)
-	self.pos.x = self.pos.x + math.cos(self.rotation) * self.speed
-	self.pos.y = self.pos.y + math.sin(self.rotation) * self.speed
+	self.pos.x = self.pos.x + math.cos(self.rotation) * self.speed * dt
+	self.pos.y = self.pos.y + math.sin(self.rotation) * self.speed * dt
 
 	if self.liveTimer >= 1.5 and not level:containsPoint(self.pos) then
 		self:free()
 	end
 	self.liveTimer = self.liveTimer + dt
-
-    if self.bulletType == BulletType.EnemyBullet and (not level:containsPoint(self.pos)) then
-        self:free()
-    end
-    -- self.pos = level:wrapPosition(self.pos)
 end
 
 function Bullet:draw()

@@ -17,8 +17,10 @@ function Level:new(center, width, height, rotation, isRotating)
         vec2:pooled(self.center.x - self.hs.x, self.center.y + self.hs.y)
     }
     -- add fucking edges
-    World:add_entity(Edge(corners[1], corners[2], EdgeType.Portal))
-	World:add_entity(Edge(corners[2], corners[3], EdgeType.SpawnEnemy))
+    local portalTop, portalBottom = CreatePortalPair(corners[1], corners[2], corners[3], corners[4])
+	World:add_entity(portalTop)
+    World:add_entity(portalBottom)
+    World:add_entity(Edge(corners[2], corners[3], EdgeType.SpawnEnemy))
 	-- World:add_entity(Edge(corners[3], corners[4], EdgeType.Damagable))
     World:add_entity(Edge(corners[4], corners[1], EdgeType.Normal))
 end
@@ -77,34 +79,6 @@ function Level:wrapPosition(pos)
 end
 
 function Level:draw()
-	-- love.graphics.setColor(PALETTE.green)
-    -- local corners = {
-    --     vec2:pooled(self.center.x - self.hs.x, self.center.y - self.hs.y),
-    --     vec2:pooled(self.center.x + self.hs.x, self.center.y - self.hs.y),
-    --     vec2:pooled(self.center.x + self.hs.x, self.center.y + self.hs.y),
-    --     vec2:pooled(self.center.x - self.hs.x, self.center.y + self.hs.y)
-    -- }
-    -- if self.rotation ~= 0 then
-    --     local cos_r = math.cos(self.rotation)
-    --     local sin_r = math.sin(self.rotation)
-    --     for _, corner in ipairs(corners) do
-    --         corner:vector_sub_inplace(self.center)
-    --         local x = corner.x * cos_r - corner.y * sin_r
-    --         local y = corner.x * sin_r + corner.y * cos_r
-    --         corner.x, corner.y = x, y
-    --         corner:vector_add_inplace(self.center)
-    --     end
-    -- end
-    -- love.graphics.line(
-    --     corners[1].x, corners[1].y,
-    --     corners[2].x, corners[2].y,
-    --     corners[3].x, corners[3].y,
-    --     corners[4].x, corners[4].y,
-    --     corners[1].x, corners[1].y
-    -- )
-
-    -- vec2.release(corners[1], corners[2], corners[3], corners[4])
-    -- love.graphics.setColor(PALETTE.white)
 end
 
 function Level:update(dt)

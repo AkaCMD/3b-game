@@ -29,7 +29,7 @@ World = World()
 SCREEN_WIDTH = 720
 SCREEN_HEIGHT = 720
 
-local shootCooldown = 0.1
+local shootCooldown = 0.15
 local lastShotTime = 0
   
 local level
@@ -60,6 +60,8 @@ local timer = 0.0
 
 local function initGame()
 	World:clear()
+	Enemy:flush_pool()
+	Bullet:flush_pool()
 
 	timer = 0.0
 
@@ -69,22 +71,6 @@ local function initGame()
 	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
 	World:add_entity(cursor)
 	World:add_entity(player)
-
-	-- World:add_entity(Enemy.Builder:new()
-	-- 				:withPosition(300, 300)
-	-- 				:withSpeed(100)
-	-- 				:withScale(1.5, 1.5)
-	-- 				:build())
-	-- World:add_entity(Enemy.Builder:new()
-	-- 				:withPosition(200, 300)
-	-- 				:withSpeed(100)
-	-- 				:withScale(1.5, 1.5)
-	-- 				:build())
-	-- World:add_entity(Enemy.Builder:new()
-	-- 				:withPosition(500, 300)
-	-- 				:withSpeed(100)
-	-- 				:withScale(1.5, 1.5)
-	-- 				:build())
 
 	timerUI = UI(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
 end
@@ -155,8 +141,6 @@ function state.gameplay:draw()
 		end
 
     	love.graphics.setLineWidth(2)
-    	-- love.graphics.setColor(1, 0, 0.267, 1)
-    	-- love.graphics.print("Ready or not, give me all that you've got!", 15, 15)
     	love.graphics.setColor(PALETTE.white)
 
 		-- Draw level bound

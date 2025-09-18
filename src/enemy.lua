@@ -15,7 +15,7 @@ function Enemy:new(pos, rot, scale, speed)
 	self.rotation = rot or 0
 	self.health = 1
 
-	self.shootCooldown = 0.3
+	self.shootCooldown = 0.5
 	self.lastShotTime = 0
 end
 
@@ -69,7 +69,7 @@ end
 function Enemy:shoot()
 	local dir = vec2(math.cos(self.rotation), math.sin(self.rotation))
 	local spawnPos = self.pos:copy() + 10 * dir
-	return Bullet:pooled(spawnPos, self.rotation, vec2(2, 2), 4, BulletType.EnemyBullet)
+	return Bullet(spawnPos, self.rotation, vec2(2, 2), 240, BulletType.EnemyBullet)
 end
 
 make_pooled(Enemy, 120)
@@ -88,7 +88,7 @@ function Enemy.Builder:new()
     builder.health = 1
     builder.colliderType = COLLIDER_TYPE.dynamic
     builder.speed = 10
-    builder.shootCooldown = 0.3
+    builder.shootCooldown = 0.5
     builder.lastShotTime = 0
     return builder
 end

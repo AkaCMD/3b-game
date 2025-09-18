@@ -9,7 +9,7 @@ EnemySpawner = class({
 function EnemySpawner:new(pos, spawnTime)
     self.pos = pos or vec2(300, 300)
     self.waveTimer = Batteries.timer(
-        spawnTime or 1.0,
+        spawnTime or 6.0,
         nil,
         function(_, timer)
             self:spawnWave()
@@ -24,5 +24,5 @@ function EnemySpawner:update(dt)
 end
 
 function EnemySpawner:spawnWave()
-    World:add_entity(Enemy:pooled(self.pos, 0, vec2(1.5, 1.5), 100))
+    World:add_entity(Enemy(self.pos, 0, vec2(1.5, 1.5), 100))
 end

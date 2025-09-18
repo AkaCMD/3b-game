@@ -26,17 +26,6 @@ function Edge:new(start, finish, edgeTypeIndex)
 	---@type EnemySpawner[]
 	self.enemySpawners = {}
 
-	if self.edgeType == EdgeType.Portal then
-        local dx = self.endPos.x - self.startPos.x
-		local dy = self.endPos.y - self.startPos.y
-		local len = math.sqrt(dx*dx + dy*dy)
-		if len > 0 then
-			local nx = -dy / len * len
-			local ny =  dx / len * len
-			self.portalOffset = vec2(nx, ny)
-		end
-	end
-
 	if self.edgeType == EdgeType.SpawnEnemy then
 		self:placeEnemySpawners(3)
 	end
@@ -72,49 +61,83 @@ function Edge:draw()
 	end
 	love.graphics.line(self.startPos.x, self.startPos.y, self.endPos.x, self.endPos.y)
 
-	-- Draw another lower edge
-	if self.edgeType == EdgeType.Portal then
-		local dx = self.endPos.x - self.startPos.x
-		local dy = self.endPos.y - self.startPos.y
-		local len = math.sqrt(dx * dx + dy * dy)
-
-		if len > 0 then
-			local nx = -dy / len * len
-			local ny = dx / len * len
-
-			local p1x = self.startPos.x + nx
-			local p1y = self.startPos.y + ny
-			local p2x = self.endPos.x + nx
-			local p2y = self.endPos.y + ny
-
-			love.graphics.line(p1x, p1y, p2x, p2y)
-		end
-	end
-
 	love.graphics.setColor(PALETTE.white)
 end
 
 ---@param other Entity
 function Edge:onCollide(other)
-	if other:is(Player) then
-		if self.edgeType == EdgeType.Normal then
-			logger.info("Normal")
-		elseif self.edgeType == EdgeType.SpawnEnemy then
-			logger.info("SpawnEnemy")
-		elseif self.edgeType == EdgeType.Portal and self.portalOffset then
+    local isPlayer = other:is(Player)
+    local isBullet = other:is(Bullet)
+
+    if self.edgeType == EdgeType.Normal then
+        if isPlayer then logger.info("Normal") end
+        if isBullet then other:free() end
+        return
+    end
+
+    if self.edgeType == EdgeType.SpawnEnemy then
+        if isPlayer then logger.info("SpawnEnemy") end
+        if isBullet then other:free() end
+        return
+    end
+
+    if self.edgeType == EdgeType.Damagable then
+        if isPlayer then logger.info("Damagable") end
+        if isBullet then other:free() end
+        return
+    end
+
+	if self.edgeType == EdgeType.Portal then
+		if isPlayer then
 			logger.info("Portal")
-			other.pos = other.pos + self.portalOffset
-		elseif self.edgeType == EdgeType.Damagable then
-			logger.info("Damagable")
+			self:teleport(other)
 		end
-	end
-	if other:is(Bullet) then
-		if self.edgeType == EdgeType.Normal then
-			other:free()
-		elseif self.edgeType == EdgeType.SpawnEnemy then
-		elseif self.edgeType == EdgeType.Portal and self.portalOffset then
-			other.pos = other.pos + self.portalOffset
-		elseif self.edgeType == EdgeType.Damagable then
+
+		if isBullet then
+			if other.bulletType == BulletType.PlayerBullet then
+				self:teleport(other)
+			else
+				other:free()
+			end
 		end
-	end
+    end
+
+    if isPlayer or (isBullet and other.bulletType == BulletType.PlayerBullet) then
+        logger.info("Portal")
+        self:teleport(other)
+    end
+end
+
+function CreatePortalPair(startA, endA, startB, endB)
+	local a = Edge(startA, endA, EdgeType.Portal)
+	local b = Edge(startB, endB, EdgeType.Portal)
+	a.targetPortal = b
+	b.targetPortal = a
+	return a, b
+end
+
+---@param e Entity	Player or Bullet
+function Edge:teleport(e)
+    if self.edgeType ~= EdgeType.Portal or not self.targetPortal then return end
+
+    local t = project_ratio_on_segment(e.pos, self.startPos, self.endPos)
+
+    local dest = lerp_vec2(self.targetPortal.startPos, self.targetPortal.endPos, t)
+
+    local dx = self.targetPortal.endPos.x - self.targetPortal.startPos.x
+    local dy = self.targetPortal.endPos.y - self.targetPortal.startPos.y
+    local len = math.sqrt(dx*dx + dy*dy)
+    local nx, ny = -dy/len, dx/len
+    e.pos = vec2(dest.x + nx*8, dest.y + ny*8)
+end
+
+function project_ratio_on_segment(p, a, b)
+    local vx, vy = b.x - a.x, b.y - a.y
+    local wx, wy = p.x - a.x, p.y - a.y
+    local denom = vx*vx + vy*vy
+    if denom == 0 then
+        return 0
+    end
+    local t = (wx * vx + wy * vy) / denom
+    return Mathx.clamp(t, 0, 1)
 end

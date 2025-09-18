@@ -28,7 +28,7 @@ function Player:update(dt, level)
         dir:normalise_inplace()
         self.pos:fused_multiply_add_inplace(dir, 200 * dt)
     end
-    
+
     if level then
         self.pos = level:wrapPosition(self.pos)
     end
@@ -56,7 +56,7 @@ function Player:shoot()
 	local dir = vec2(math.cos(self.rotation - math.pi/2), math.sin(self.rotation - math.pi/2))
 	local spawnPos = self.pos:copy() + 10 * dir
 
-	return Bullet:pooled(spawnPos, self.rotation - math.pi/2, vec2(3, 3), 8, BulletType.PlayerBullet)
+	return Bullet(spawnPos, self.rotation - math.pi/2, vec2(3, 3), 400, BulletType.PlayerBullet)
 end
 
 ---@param other Entity
