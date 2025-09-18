@@ -36,7 +36,7 @@ function Bullet:update(dt, level)
     if self.bulletType == BulletType.EnemyBullet and (not level:containsPoint(self.pos)) then
         self:free()
     end
-    self.pos = level:wrapPosition(self.pos)
+    -- self.pos = level:wrapPosition(self.pos)
 end
 
 function Bullet:draw()

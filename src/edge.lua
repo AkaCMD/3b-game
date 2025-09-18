@@ -1,4 +1,3 @@
--- TODO: different functionalities
 Edge = class({
 	name = "Edge",
 	extends = Entity,
@@ -26,6 +25,17 @@ function Edge:new(start, finish, edgeTypeIndex)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	---@type EnemySpawner[]
 	self.enemySpawners = {}
+
+	if self.edgeType == EdgeType.Portal then
+        local dx = self.endPos.x - self.startPos.x
+		local dy = self.endPos.y - self.startPos.y
+		local len = math.sqrt(dx*dx + dy*dy)
+		if len > 0 then
+			local nx = -dy / len * len
+			local ny =  dx / len * len
+			self.portalOffset = vec2(nx, ny)
+		end
+	end
 
 	if self.edgeType == EdgeType.SpawnEnemy then
 		self:placeEnemySpawners(3)
@@ -86,15 +96,25 @@ end
 
 ---@param other Entity
 function Edge:onCollide(other)
-	if not other:is(Player) then return end
-
-	if self.edgeType == EdgeType.Normal then
-		logger.info("Normal")
-	elseif self.edgeType == EdgeType.SpawnEnemy then
-		logger.info("SpawnEnemy")
-	elseif self.edgeType == EdgeType.Portal then
-		logger.info("Portal")
-	elseif self.edgeType == EdgeType.Damagable then
-		logger.info("Damagable")
+	if other:is(Player) then
+		if self.edgeType == EdgeType.Normal then
+			logger.info("Normal")
+		elseif self.edgeType == EdgeType.SpawnEnemy then
+			logger.info("SpawnEnemy")
+		elseif self.edgeType == EdgeType.Portal and self.portalOffset then
+			logger.info("Portal")
+			other.pos = other.pos + self.portalOffset
+		elseif self.edgeType == EdgeType.Damagable then
+			logger.info("Damagable")
+		end
+	end
+	if other:is(Bullet) then
+		if self.edgeType == EdgeType.Normal then
+			other:free()
+		elseif self.edgeType == EdgeType.SpawnEnemy then
+		elseif self.edgeType == EdgeType.Portal and self.portalOffset then
+			other.pos = other.pos + self.portalOffset
+		elseif self.edgeType == EdgeType.Damagable then
+		end
 	end
 end
