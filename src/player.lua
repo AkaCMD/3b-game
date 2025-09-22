@@ -11,9 +11,14 @@ function Player:new(pos, scale)
 	self.hitbox = vec2(8, 8)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.health = 6
+	self.isInvincible = false
+	self.invincibleTimer = nil
 end
 
 function Player:update(dt, level)
+	if self.invincibleTimer then
+		self.invincibleTimer:update(dt)
+	end
 	self.lastPos = self.pos:copy()
 	Entity:update(dt)
 
@@ -62,7 +67,14 @@ end
 ---@param other Entity
 function Player:onCollide(other)
 	if other:is(Enemy) or (other:is(Bullet) and other.bulletType == BulletType.EnemyBullet) then
+		if self.isInvincible then return end
 		self.health = self.health - 1
+		-- Player become invincible for second after getting hurt 
+		self.invincibleTimer = Batteries.timer(
+			1,
+			function () self.isInvincible = true end,
+			function () self.isInvincible = false end
+		)
 		other:free()
 	end
 end
