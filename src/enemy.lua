@@ -17,9 +17,18 @@ function Enemy:new(pos, rot, scale, speed)
 
 	self.shootCooldown = 0.5
 	self.lastShotTime = 0
+
+    -- avoid being stopped by edge after spawning
+    self.hasCollision = false
+    self.noCollisionTimer = Batteries.timer(
+        1,
+        nil,
+        function () self.hasCollision = true end
+    )
 end
 
 function Enemy:update(dt, level)
+    self.noCollisionTimer:update(dt)
 	-- Shoot cooldown
 	self.lastShotTime = self.lastShotTime + dt
 	if self.lastShotTime >= self.shootCooldown then
@@ -37,10 +46,6 @@ function Enemy:update(dt, level)
 		local moveDir = vec2(math.cos(self.rotation), math.sin(self.rotation))
 		self.pos:add_inplace(moveDir:scalar_mul_inplace(self.speed * dt))
 	end
-
-	if level then
-        self.pos = level:wrapPosition(self.pos)
-    end
 end
 
 function Enemy:draw()

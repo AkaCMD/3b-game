@@ -37,7 +37,9 @@ function Edge:placeEnemySpawners(num)
 	local interval = self.length / num
 	for i = 1, num do
 		local pos = lerp_vec2(self.startPos, self.endPos, (interval*i - interval/2) / self.length)
-		table.insert(self.enemySpawners, EnemySpawner(pos))
+		local en = EnemySpawner(pos)
+		table.insert(self.enemySpawners, en)
+		World:add_entity(en)
 	end
 end
 

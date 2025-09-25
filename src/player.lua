@@ -33,10 +33,6 @@ function Player:update(dt, level)
         dir:normalise_inplace()
         self.pos:fused_multiply_add_inplace(dir, 200 * dt)
     end
-
-    if level then
-        self.pos = level:wrapPosition(self.pos)
-    end
 end
 
 function Player:draw()
