@@ -1,6 +1,4 @@
 LevelEvent = {
-    RotationStart = "rotation_start",
-    RotationStop = "rotation_stop",
     EdgeRandomize = "edge_randomize",
     SizeChange = "size_change",
 }
@@ -17,7 +15,23 @@ function Level:new(center, width, height, rotation, isRotating)
 	self.hs = vec2(width / 2, height / 2)
 	self.rotation = rotation or 0
 	self.isRotating = isRotating or false
+    self.rotationSpeed = 0.8
     self.eventHandlers = {}
+    self.eventTimer = Batteries.timer(
+        30.0,
+        nil,
+        function(_, timer)
+            self:randomEvent()
+            timer:reset()
+        end
+    )
+
+    self:initEdges()
+
+    self:registerDefaultHandlers()
+end
+
+function Level:initEdges()
     local corners = {
         vec2:pooled(self.center.x - self.hs.x, self.center.y - self.hs.y),
         vec2:pooled(self.center.x + self.hs.x, self.center.y - self.hs.y),
@@ -31,15 +45,13 @@ function Level:new(center, width, height, rotation, isRotating)
     World:add_entity(Edge(corners[2], corners[3], EdgeType.SpawnEnemy))
 	-- World:add_entity(Edge(corners[3], corners[4], EdgeType.Damagable))
     World:add_entity(Edge(corners[4], corners[1], EdgeType.Normal))
-
-    self:registerDefaultHandlers()
 end
 
 function Level:on(event, handler)
-    if not self.eventHandler[event] then
-        self.eventHandler[event] = {}
+    if not self.eventHandlers[event] then
+        self.eventHandlers[event] = {}
     end
-    table.insert(self.eventHandler[event], handler)
+    table.insert(self.eventHandlers[event], handler)
 end
 
 function Level:trigger(event, data)
@@ -108,24 +120,14 @@ function Level:draw()
 end
 
 function Level:update(dt)
+    self.eventTimer:update(dt)
 	if self.isRotating then
-		self.rotation = self.rotation + dt * 0.8
+		self.rotation = self.rotation + dt * self.rotationSpeed
 	end
 end
 
 function Level:registerDefaultHandlers()
-    self:on(LevelEvent.RotationStart, function(data)
-        self.isRotating = true
-        self.rotationSpeed = data and data.speed or 0.8
-        print("Level rotation started with speed: " .. self.rotationSpeed)
-    end)
-
-    self:on(LevelEvent.RotationStop, function(data)
-        self.isRotating = false
-        print("Level rotation stopped")
-    end)
-
-    self:on(LevelEvent.EdgeRandomize, function(data)
+    self:on(LevelEvent.EdgeRandomize, function()
         self:randomizeEdges()
         print("Edges randomized")
     end)
@@ -136,4 +138,8 @@ function Level:registerDefaultHandlers()
             print("Level resized to: " .. data.width .. "x" .. data.height)
         end
     end)
+end
+
+function Level:randomEvent()
+    --local randomEvent = LevelEvent[math.random(1, #LevelEvent)]
 end

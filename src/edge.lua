@@ -103,7 +103,6 @@ function Edge:onCollide(other)
     end
 
     if isPlayer or (isBullet and other.bulletType == BulletType.PlayerBullet) then
-        logger.info("Portal")
         self:teleport(other)
     end
 end
