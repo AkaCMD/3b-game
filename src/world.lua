@@ -15,7 +15,8 @@ end
 --- Remove invalid entities
 ---@param idx integer
 function World:remove_entity(idx)
-    table.remove(self.entities, idx)
+    local en = table.remove(self.entities, idx)
+	en:free()
 end
 
 ---- Update all entities in the world

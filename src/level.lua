@@ -103,7 +103,12 @@ end
 function Level:randomEvent()
     local randomEvent = LevelEvent[math.random(1, #LevelEvent)]
     if randomEvent == LevelEvent.EdgeRandomize then
-        
+        for i = #self.edgeSlots, 1, -1 do
+            logger.info("")
+            local en = self.edgeSlots[i]
+            en.isValid = false
+            table.remove(self.edgeSlots, i)
+        end
     elseif randomEvent == LevelEvent.SizeChange then
         
     end
