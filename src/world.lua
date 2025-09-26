@@ -42,7 +42,6 @@ function World:check_collisions()
 				-- If enemy got shot
 				a:onCollide(b)
 				b:onCollide(a)
-				print("Collision between " .. tostring(a) .. " and " .. tostring(b))
 
 				local at, bt = a.colliderType, b.colliderType
 				if at == COLLIDER_TYPE.trigger or bt == COLLIDER_TYPE.trigger then

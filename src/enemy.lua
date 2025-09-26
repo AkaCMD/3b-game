@@ -7,7 +7,7 @@ Enemy = class({
 })
 
 function Enemy:new(pos, rot, scale, speed)
-	---@class Enemy:Entity
+	---@class Enemy : Entity
 	self:super(pos, scale)
 	self.speed = speed or 10
 	self.hitbox = vec2(12, 12)
@@ -59,6 +59,12 @@ function Enemy:onCollide(other)
 		self.health = self.health - 1
     	if self.health <= 0 then
 			bus:publish("enemy_killed")
+
+			local dropItemChance = 0.1
+			if math.random() < dropItemChance then
+				World:add_entity(Item(self.pos:copy(), vec2(1, 1), ItemType.Heart))
+			end
+
         	self:free()
     	end
     	other:free()

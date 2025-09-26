@@ -9,7 +9,6 @@ EnemySpawner = class({
 ---@param spawnTime number
 function EnemySpawner:new(pos, spawnTime)
     self:super(pos, vec2(0, 0))
-    self.pos = pos or vec2(300, 300)
     self.waveTimer = Batteries.timer(
         spawnTime or 6.0,
         nil,
