@@ -23,7 +23,7 @@ function Enemy:new(pos, rot, scale, speed)
     -- avoid being stopped by edge after spawning
     self.hasCollision = false
     self.noCollisionTimer = Batteries.timer(
-        1.5,
+        1,
         nil,
         function () self.hasCollision = true end
     )

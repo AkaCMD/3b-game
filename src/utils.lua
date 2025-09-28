@@ -87,3 +87,12 @@ function lerp_vec2(a, b, t)
     local y = Mathx.lerp(a.y, b.y, t)
     return vec2(x, y)
 end
+
+---Returns a sine-wave offset for a bobbling animation
+---@param baseY number      starting y position
+---@param time number       elapsed time (seconds)
+---@param amplitude number  max pixels up/down
+---@param frequency number  cycles per second
+function sinwave(baseY, time, amplitude, frequency)
+    return baseY + math.sin(time * math.pi * frequency) * amplitude
+end
