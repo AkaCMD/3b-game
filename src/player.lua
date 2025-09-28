@@ -85,6 +85,7 @@ end
 
 function Player:explode()
 	self.health = self.health - 1
+	love.audio.play(Assets.sfx.big_explosion)
 	World:clear_all_enemies()
 	World:clear_all_enemy_bullets()
 end

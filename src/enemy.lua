@@ -66,7 +66,7 @@ function Enemy:onCollide(other)
 			if math.random() < dropItemChance then
 				World:add_entity(Item(self.pos:copy(), vec2(2, 2), ItemType.Heart))
 			end
-
+			love.audio.play(Assets.sfx.explosion)
         	self:free()
     	end
     	other:free()
