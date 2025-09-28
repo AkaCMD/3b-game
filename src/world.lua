@@ -70,3 +70,23 @@ function World:clear()
         table.remove(self.entities, i)
     end
 end
+
+function World:clear_all_enemies()
+	for i = #self.entities, 1, -1 do
+        local entity = self.entities[i]
+		if entity:is(Enemy) then
+		    entity:free()
+        	table.remove(self.entities, i)
+		end
+    end
+end
+
+function World:clear_all_enemy_bullets()
+	for i = #self.entities, 1, -1 do
+        local entity = self.entities[i]
+		if entity:is(Bullet) and entity.bulletType == BulletType.EnemyBullet then
+		    entity:free()
+        	table.remove(self.entities, i)
+		end
+    end
+end

@@ -29,10 +29,18 @@ function Player:update(dt, level)
     if love.keyboard.isDown("d") then dir.x = dir.x + 1 end
     if love.keyboard.isDown("w") then dir.y = dir.y - 1 end
     if love.keyboard.isDown("s") then dir.y = dir.y + 1 end
+
     if dir:length_squared() > 0 then
         dir:normalise_inplace()
         self.pos:fused_multiply_add_inplace(dir, 200 * dt)
     end
+end
+
+function Player:keypressed(key)
+	if key == "space" then
+		-- Explode!
+		self:explode()
+	end
 end
 
 function Player:draw()
@@ -73,4 +81,10 @@ function Player:onCollide(other)
 		)
 		other:free()
 	end
+end
+
+function Player:explode()
+	self.health = self.health - 1
+	World:clear_all_enemies()
+	World:clear_all_enemy_bullets()
 end

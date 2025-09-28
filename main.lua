@@ -201,6 +201,7 @@ function state.gameplay:keypressed(key)
 	if key == "escape" then
 		sceneManager:push(state.pause)
 	end
+	player:keypressed(key)
 end
 -- =====================================
 
