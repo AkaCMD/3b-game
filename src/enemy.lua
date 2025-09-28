@@ -1,3 +1,5 @@
+require("src.Item")
+
 local make_pooled = Batteries.make_pooled
 
 Enemy = class({
@@ -62,7 +64,7 @@ function Enemy:onCollide(other)
 
 			local dropItemChance = 0.1
 			if math.random() < dropItemChance then
-				World:add_entity(Item(self.pos:copy(), vec2(1, 1), ItemType.Heart))
+				World:add_entity(Item(self.pos:copy(), vec2(2, 2), ItemType.Heart))
 			end
 
         	self:free()
