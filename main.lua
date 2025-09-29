@@ -109,6 +109,12 @@ function love.load()
 			end
 		)
 	end)
+
+	-- Load Sound Assets
+	Sfx_big_explosion = Assets.sfx.big_explosion
+	Sfx_explosion = Assets.sfx.explosion
+	Sfx_pickup = Assets.sfx.pickup
+	Sfx_small_hit = Assets.sfx.small_hit
 end
 
 function love.update(dt)

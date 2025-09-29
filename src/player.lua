@@ -61,7 +61,7 @@ function Player:lookAtCursor()
 end
 
 function Player:shoot()
-	love.audio.play(Assets.sfx.small_hit)
+	love.audio.play(Sfx_small_hit)
 	local dir = vec2(math.cos(self.rotation - math.pi/2), math.sin(self.rotation - math.pi/2))
 	local spawnPos = self.pos:copy() + 10 * dir
 
@@ -79,7 +79,7 @@ end
 
 function Player:explode()
 	self.health = self.health - 1
-	love.audio.play(Assets.sfx.big_explosion)
+	love.audio.play(Sfx_big_explosion)
 	World:clear_all_enemies()
 	World:clear_all_enemy_bullets()
 end

@@ -35,7 +35,7 @@ end
 function Item:onCollide(other)
     if other:is(Player) then
         other.health = other.health + 1
-        love.audio.play(Assets.sfx.pickup)
+        love.audio.play(Sfx_pickup)
         self.isValid = false
     end
 end
