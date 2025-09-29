@@ -57,6 +57,7 @@ state.gameover = {}
 
 ---@type number Timer
 local timer = 0.0
+local visualTimer
 
 local function initGame()
 	World:clear()
@@ -82,7 +83,11 @@ function love.load()
 	default_font = Assets.fonts.RasterForgeRegular(16)
 	love.graphics.setFont(default_font)
 	-- love.mouse.setGrabbed(true)
-	effect = Moonshine(Moonshine.effects.crt).chain(Moonshine.effects.glow)
+	effect = Moonshine(Moonshine.effects.crt).chain(Moonshine.effects.glow).chain(Moonshine.effects.chromasep)
+	effect.parameters = {
+		chromasep = {angle = math.pi/6, radius = 8},
+	}
+	effect.disable("chromasep")
 
 	initGame()
 
@@ -93,6 +98,16 @@ function love.load()
 	-- Init event bus
 	bus:subscribe("enemy_killed", function ()
 		startShake(0.2, 0.15)
+	end)
+	bus:subscribe("player_take_damage", function ()
+		effect.enable("chromasep")
+		visualTimer = Batteries.timer(
+			0.3,
+			nil,
+			function ()
+				effect.disable("chromasep")
+			end
+		)
 	end)
 end
 
@@ -173,6 +188,9 @@ function state.gameplay:update(dt)
 	timer = timer + dt
 	if t < shakeDuration then
 		t = t + dt
+	end
+	if visualTimer then
+		visualTimer:update(dt)
 	end
 
 	lastShotTime = lastShotTime + dt

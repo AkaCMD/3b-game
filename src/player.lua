@@ -72,13 +72,7 @@ end
 function Player:onCollide(other)
 	if other:is(Enemy) or (other:is(Bullet) and other.bulletType == BulletType.EnemyBullet) then
 		if self.isInvincible then return end
-		self.health = self.health - 1
-		-- Player become invincible for second after getting hurt 
-		self.invincibleTimer = Batteries.timer(
-			1,
-			function () self.isInvincible = true end,
-			function () self.isInvincible = false end
-		)
+		self:takeDamage(1)
 		other:free()
 	end
 end
@@ -88,4 +82,16 @@ function Player:explode()
 	love.audio.play(Assets.sfx.big_explosion)
 	World:clear_all_enemies()
 	World:clear_all_enemy_bullets()
+end
+
+---@param dmg integer
+function Player:takeDamage(dmg)
+	-- Player become invincible for second after getting hurt 
+	self.health = self.health - dmg
+	self.invincibleTimer = Batteries.timer(
+		1,
+		function () self.isInvincible = true end,
+		function () self.isInvincible = false end
+	)
+	bus:publish("player_take_damage")
 end
