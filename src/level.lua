@@ -1,6 +1,6 @@
 LevelEvent = {
     EdgeRandomize = 1,
-    SizeChange = 2,
+    Shrink = 2,
 }
 
 Level = class({
@@ -20,8 +20,10 @@ function Level:new(center, width, height, rotation, isRotating)
         30.0,
         nil,
         function(_, timer)
+            self:resetLevelScale()
             self:randomEvent()
             timer:reset()
+            love.audio.play(Sfx_power_up)
         end
     )
     self.edgeSlots = {}
@@ -77,17 +79,11 @@ function Level:randomEvent()
     if idx == LevelEvent.EdgeRandomize then
         logger.info("LevelEvent.EdgeRandomize")
         -- clear old edges
-        for i = #self.edgeSlots, 1, -1 do
-            local en = self.edgeSlots[i]
-            en.isValid = false
-            for _, spawner in ipairs(en.enemySpawners) do
-                spawner.isValid = false
-            end
-            table.remove(self.edgeSlots, i)
-        end
+        self:clearEdges()
         self:randomizeEdges()
-    elseif idx == LevelEvent.SizeChange then
+    elseif idx == LevelEvent.Shrink then
         logger.info("LevelEvent.SizeChange")
+        self:shrinkLevel()
     end
 end
 
@@ -150,5 +146,73 @@ function Level:randomizeEdges()
         if edge then
             World:add_entity(edge)
         end
+    end
+end
+
+function Level:clearEdges()
+    for i = #self.edgeSlots, 1, -1 do
+        local en = self.edgeSlots[i]
+        en.isValid = false
+        for _, spawner in ipairs(en.enemySpawners) do
+            spawner.isValid = false
+        end
+        table.remove(self.edgeSlots, i)
+    end
+end
+
+ShrinkType = {
+    X = 1,
+    Y = 2,
+    Both = 3,
+}
+
+function Level:shrinkLevel()
+    local num = math.random(#ShrinkType)
+
+    if num == ShrinkType.X then
+        self.hs.x = self.hs.x * 0.5
+    elseif num == ShrinkType.Y then
+        self.hs.y = self.hs.y * 0.5
+    elseif num == ShrinkType.Both then
+        self.hs.x = self.hs.x * 0.5
+        self.hs.y = self.hs.y * 0.5
+    end
+
+    local corners = {
+        vec2(self.center.x - self.hs.x, self.center.y - self.hs.y),
+        vec2(self.center.x + self.hs.x, self.center.y - self.hs.y),
+        vec2(self.center.x + self.hs.x, self.center.y + self.hs.y),
+        vec2(self.center.x - self.hs.x, self.center.y + self.hs.y)
+    }
+
+    self.edgeSlots[1].startPos, self.edgeSlots[1].endPos = corners[1], corners[2]
+    self.edgeSlots[2].startPos, self.edgeSlots[2].endPos = corners[2], corners[3]
+    self.edgeSlots[3].startPos, self.edgeSlots[3].endPos = corners[3], corners[4]
+    self.edgeSlots[4].startPos, self.edgeSlots[4].endPos = corners[4], corners[1]
+
+    for _, edge in ipairs(self.edgeSlots) do
+        edge.pos = vec2((edge.startPos.x + edge.endPos.x) / 2, (edge.startPos.y + edge.endPos.y) / 2)
+        edge.length = vec2.length(edge.endPos:vector_sub(edge.startPos))
+        if math.abs(edge.endPos.x - edge.startPos.x) > math.abs(edge.endPos.y - edge.startPos.y) then
+            edge.hitbox = vec2(edge.length, 5)
+        else
+            edge.hitbox = vec2(5, edge.length)
+        end
+        edge.hs = edge.hitbox:pooled_copy():scalar_mul_inplace(0.5)
+
+        if edge.edgeType == EdgeType.SpawnEnemy then
+            for _, en in ipairs(edge.enemySpawners) do
+                en.isValid = false
+            end
+            edge.enemySpawners = {}
+            edge:placeEnemySpawners(3)
+        end
+    end
+end
+
+
+function Level:resetLevelScale()
+    for _, edge in ipairs(self.edgeSlots) do
+        edge:scale(1.0)
     end
 end

@@ -17,6 +17,8 @@ function Edge:new(start, finish, edgeTypeIndex)
 	self.endPos = finish
 	self.length = vec2.length(finish:vector_sub(start))
 	self.edgeType = edgeTypeIndex
+	self.scaleFactor = 1.0
+
 	if math.abs(finish.x - start.x) > math.abs(finish.y - start.y) then
 		self.hitbox = vec2(self.length, 5)
 	else
@@ -142,4 +144,35 @@ function project_ratio_on_segment(p, a, b)
     end
     local t = (wx * vx + wy * vy) / denom
     return Mathx.clamp(t, 0, 1)
+end
+
+---@param factor number
+---@param center vec2
+function Edge:scaler(factor)
+	---@param p vec2
+	local function scale_point(p)
+		return vec2(
+			self.pos.x + (p.x - self.pos.x) * factor,
+			self.pos.y + (p.y - self.pos.y) * factor
+		)
+	end
+
+	self.startPos = scale_point(self.startPos)
+	self.endPos = scale_point(self.endPos)
+
+	-- update length and hitbox
+	self.length = self.length * factor
+    if math.abs(self.endPos.x - self.startPos.x) > math.abs(self.endPos.y - self.startPos.y) then
+        self.hitbox = vec2(self.length, 5)
+    else
+        self.hitbox = vec2(5, self.length)
+    end
+
+	if self.edgeType == EdgeType.SpawnEnemy then
+		for _, en in ipairs(self.enemySpawners) do
+			en.isValid = false
+		end
+		self.enemySpawners = {}
+		self:placeEnemySpawners(3)
+	end
 end

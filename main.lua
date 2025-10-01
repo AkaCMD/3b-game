@@ -1,4 +1,5 @@
 io.stdout:setvbuf("no")
+-- Press F5 in VSCode to debug!!!
 if arg[2] == "debug" then
     require("lldebugger").start()
 end
@@ -235,6 +236,15 @@ function state.gameplay:keypressed(key)
 		sceneManager:push(state.pause)
 	end
 	player:keypressed(key)
+
+	--@test
+	if key == "1" then
+		level:clearEdges()
+        level:randomizeEdges()
+	end
+	if key == "2" then
+		level:shrinkLevel()
+	end
 end
 -- =====================================
 
