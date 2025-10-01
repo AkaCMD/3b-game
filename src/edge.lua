@@ -93,6 +93,7 @@ function Edge:onCollide(other)
 		if isPlayer then
 			logger.info("Portal")
 			self:teleport(other)
+			love.audio.play(Sfx_portal)
 		end
 
 		if isBullet then

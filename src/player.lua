@@ -94,4 +94,5 @@ function Player:takeDamage(dmg)
 		function () self.isInvincible = false end
 	)
 	bus:publish("player_take_damage")
+	love.audio.play(Sfx_hurt)
 end

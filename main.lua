@@ -113,8 +113,15 @@ function love.load()
 	-- Load Sound Assets
 	Sfx_big_explosion = Assets.sfx.big_explosion
 	Sfx_explosion = Assets.sfx.explosion
+	Sfx_explosion:setVolume(0.2)
+	Sfx_hurt = Assets.sfx.hurt
+	Sfx_hurt:setVolume(1.5)
 	Sfx_pickup = Assets.sfx.pickup
+	Sfx_pickup:setVolume(0.2)
+	Sfx_portal = Assets.sfx.portal
+	Sfx_power_up = Assets.sfx.power_up
 	Sfx_small_hit = Assets.sfx.small_hit
+	Sfx_small_hit:setVolume(0.2)
 end
 
 function love.update(dt)
