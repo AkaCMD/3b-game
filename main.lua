@@ -31,7 +31,7 @@ SCREEN_HEIGHT = 720
 
 local shootCooldown = 0.15
 local lastShotTime = 0
-  
+local Timers = {}
 local level
 local effect
 
@@ -57,7 +57,6 @@ state.gameover = {}
 
 ---@type number Timer
 local timer = 0.0
-local visualTimer
 
 local function initGame()
 	World:clear()
@@ -73,7 +72,7 @@ local function initGame()
 	World:add_entity(cursor)
 	World:add_entity(player)
 
-	timerUI = UI(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
+	local timerUI = UI(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
 end
 
 function love.load()
@@ -101,13 +100,14 @@ function love.load()
 	end)
 	bus:subscribe("player_take_damage", function ()
 		effect.enable("chromasep")
-		visualTimer = Batteries.timer(
+		local vfxTimer = Batteries.timer(
 			0.3,
 			nil,
 			function ()
 				effect.disable("chromasep")
 			end
 		)
+		table.insert(Timers, vfxTimer)
 	end)
 
 	-- Load Sound Assets
@@ -119,6 +119,7 @@ function love.load()
 	Sfx_pickup = Assets.sfx.pickup
 	Sfx_pickup:setVolume(0.2)
 	Sfx_portal = Assets.sfx.portal
+	Sfx_portal:setVolume(0.2)
 	Sfx_power_up = Assets.sfx.power_up
 	Sfx_small_hit = Assets.sfx.small_hit
 	Sfx_small_hit:setVolume(0.2)
@@ -198,12 +199,13 @@ function state.gameplay:update(dt)
 	end
 
 	-- Update timers
+	for i = #Timers, 1, -1 do
+		Timers[i]:update(dt)
+	end
+
 	timer = timer + dt
 	if t < shakeDuration then
 		t = t + dt
-	end
-	if visualTimer then
-		visualTimer:update(dt)
 	end
 
 	lastShotTime = lastShotTime + dt
