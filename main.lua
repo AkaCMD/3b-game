@@ -89,6 +89,7 @@ function love.load()
 	}
 	effect.disable("chromasep")
 
+	math.randomseed(os.time())
 	initGame()
 
 	sceneManager = Roomy.new()
