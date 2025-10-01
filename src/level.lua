@@ -212,7 +212,37 @@ end
 
 
 function Level:resetLevelScale()
+    self.hs = vec2(self.width / 2, self.height / 2)
+
+    local corners = {
+        vec2(self.center.x - self.hs.x, self.center.y - self.hs.y),
+        vec2(self.center.x + self.hs.x, self.center.y - self.hs.y),
+        vec2(self.center.x + self.hs.x, self.center.y + self.hs.y),
+        vec2(self.center.x - self.hs.x, self.center.y + self.hs.y)
+    }
+
+    self.edgeSlots[1].startPos, self.edgeSlots[1].endPos = corners[1], corners[2]
+    self.edgeSlots[2].startPos, self.edgeSlots[2].endPos = corners[2], corners[3]
+    self.edgeSlots[3].startPos, self.edgeSlots[3].endPos = corners[3], corners[4]
+    self.edgeSlots[4].startPos, self.edgeSlots[4].endPos = corners[4], corners[1]
+
     for _, edge in ipairs(self.edgeSlots) do
-        edge:scale(1.0)
+        edge.pos = vec2((edge.startPos.x + edge.endPos.x) / 2, (edge.startPos.y + edge.endPos.y) / 2)
+        edge.length = vec2.length(edge.endPos:vector_sub(edge.startPos))
+
+        if math.abs(edge.endPos.x - edge.startPos.x) > math.abs(edge.endPos.y - edge.startPos.y) then
+            edge.hitbox = vec2(edge.length, 5)
+        else
+            edge.hitbox = vec2(5, edge.length)
+        end
+        edge.hs = edge.hitbox:pooled_copy():scalar_mul_inplace(0.5)
+
+        if edge.edgeType == EdgeType.SpawnEnemy then
+            for _, en in ipairs(edge.enemySpawners) do
+                en.isValid = false
+            end
+            edge.enemySpawners = {}
+            edge:placeEnemySpawners(3)
+        end
     end
 end
