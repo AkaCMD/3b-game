@@ -1,0 +1,7 @@
+name = "3bGame"
+default_targets = ["win64"] # add macos and win32 later
+build_directory = "bin"
+love_files = [
+"+*",
+"-*/.*",
+]
