@@ -66,6 +66,12 @@ function Enemy:onCollide(other)
 			if math.random() < dropItemChance then
 				World:add_entity(Item(self.pos:copy(), vec2(2, 2), ItemType.Heart))
 			end
+			-- draw blood
+			for i = 1, 5, 1 do
+                local dir = math.random(-30, 30) / 10;
+                local distance = math.random(0, 5);
+                BloodBatch:add(self.pos.x + math.cos(dir)*distance, self.pos.y + math.sin(dir)*distance, math.random(-30, 30) / 10, 3, 3, 6, 1);
+            end
 			love.audio.play(Sfx_explosion)
         	self:free()
     	end

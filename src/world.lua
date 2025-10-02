@@ -75,6 +75,11 @@ function World:clear_all_enemies()
 	for i = #self.entities, 1, -1 do
         local entity = self.entities[i]
 		if entity:is(Enemy) then
+			for i = 1, 5, 1 do
+                local dir = math.random(-30, 30) / 10;
+                local distance = math.random(0, 5);
+                BloodBatch:add(entity.pos.x + math.cos(dir)*distance, entity.pos.y + math.sin(dir)*distance, math.random(-30, 30) / 10, 3, 3, 6, 1);
+            end
 		    entity:free()
         	table.remove(self.entities, i)
 		end

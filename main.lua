@@ -82,8 +82,11 @@ function love.load()
 	love.window.setMode(SCREEN_WIDTH, SCREEN_HEIGHT)
 	default_font = Assets.fonts.RasterForgeRegular(16)
 	love.graphics.setFont(default_font)
+	BloodBatch = love.graphics.newSpriteBatch(Assets.images.enemy_blood)
 	-- love.mouse.setGrabbed(true)
-	effect = Moonshine(Moonshine.effects.crt).chain(Moonshine.effects.glow).chain(Moonshine.effects.chromasep)
+	effect = Moonshine(Moonshine.effects.crt)
+			.chain(Moonshine.effects.glow)
+			.chain(Moonshine.effects.chromasep)
 	effect.parameters = {
 		chromasep = {angle = math.pi/6, radius = 8},
 	}
@@ -123,6 +126,7 @@ function love.load()
 	Sfx_portal = Assets.sfx.portal
 	Sfx_portal:setVolume(0.2)
 	Sfx_power_up = Assets.sfx.power_up
+	Sfx_power_up:setVolume(0.3)
 	Sfx_small_hit = Assets.sfx.small_hit
 	Sfx_small_hit:setVolume(0.2)
 end
@@ -182,6 +186,7 @@ function state.gameplay:draw()
 		end
       	level:draw()
 
+		love.graphics.draw(BloodBatch)
 		-- Draw entities
 		for _, entity in ipairs(World.entities) do
 			entity:draw()

@@ -21,6 +21,7 @@ function Level:new(center, width, height, rotation, isRotating)
         nil,
         function(_, timer)
             self:resetLevelScale()
+            BloodBatch:clear()
             self:randomEvent()
             timer:reset()
             love.audio.play(Sfx_power_up)
