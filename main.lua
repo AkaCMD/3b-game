@@ -135,16 +135,6 @@ function love.update(dt)
 	Flux.update(dt)
 end
 
-local function drawRotatedRectangle(mode, x, y, width, height, angle)
-	-- We cannot rotate the rectangle directly, but we
-	-- can move and rotate the coordinate system.
-	love.graphics.push()
-	love.graphics.translate(x, y)
-	love.graphics.rotate(angle)
-	love.graphics.rectangle(mode, -width/2, -height/2, width, height) -- origin in the middle
-	love.graphics.pop()
-end
-
 local loveErrorHandler = love.errorhandler
 
 function love.errorhandler(msg)
@@ -179,11 +169,6 @@ function state.gameplay:draw()
     	love.graphics.setColor(PALETTE.white)
 
 		-- Draw level bound
-		if level.isRotating then
-      		drawRotatedRectangle("line", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 480 + 20, 480 + 20, angle)
-		else
-			drawRotatedRectangle("line", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 480 + 20, 480 + 20, 0)
-		end
       	level:draw()
 
 		love.graphics.draw(BloodBatch)

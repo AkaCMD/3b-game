@@ -13,9 +13,6 @@ function Level:new(center, width, height, rotation, isRotating)
 	self.width = width or 480
 	self.height = height or 480
 	self.hs = vec2(width / 2, height / 2)
-	self.rotation = rotation or 0
-	self.isRotating = isRotating or false
-    self.rotationSpeed = 0.8
     self.eventTimer = Batteries.timer(
         30.0,
         nil,
@@ -53,18 +50,12 @@ end
 
 function Level:containsPoint(point)
     local rel_point = point - self.center
-    if self.rotation ~= 0 then
-        local cos_r = math.cos(-self.rotation)
-        local sin_r = math.sin(-self.rotation)
-        local x = rel_point.x * cos_r - rel_point.y * sin_r
-        local y = rel_point.x * sin_r + rel_point.y * cos_r
-        rel_point.x, rel_point.y = x, y
-    end
     local result = intersect.aabb_point_overlap(vec2(0, 0), self.hs, rel_point)
     return result
 end
 
 function Level:draw()
+    self:drawOutline()
 end
 
 function Level:update(dt)
@@ -246,4 +237,23 @@ function Level:resetLevelScale()
             edge:placeEnemySpawners(3)
         end
     end
+end
+
+function Level:drawOutline()
+    local offset = 8
+    love.graphics.setLineWidth(2)
+
+    local outlineCorners = {
+        vec2(self.center.x - self.hs.x - offset, self.center.y - self.hs.y - offset),
+        vec2(self.center.x + self.hs.x + offset, self.center.y - self.hs.y - offset),
+        vec2(self.center.x + self.hs.x + offset, self.center.y + self.hs.y + offset),
+        vec2(self.center.x - self.hs.x - offset, self.center.y + self.hs.y + offset)
+    }
+
+    love.graphics.polygon("line",
+        outlineCorners[1].x, outlineCorners[1].y,
+        outlineCorners[2].x, outlineCorners[2].y,
+        outlineCorners[3].x, outlineCorners[3].y,
+        outlineCorners[4].x, outlineCorners[4].y
+    )
 end
