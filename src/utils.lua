@@ -96,3 +96,7 @@ end
 function sinwave(baseY, time, amplitude, frequency)
     return baseY + math.sin(time * math.pi * frequency) * amplitude
 end
+
+function point_within(px, py, x, y, w, h)
+    return px > x and px < x + w and py > y and py < y + h
+end

@@ -1,4 +1,4 @@
-require("src.Item")
+require("src.item")
 
 local make_pooled = Batteries.make_pooled
 

@@ -21,7 +21,7 @@ require("src.level")
 require("src.world")
 require("src.enemy_spawner")
 require("src.enemy")
-require("src.ui")
+require("src.text")
 require("src.utils")
 require("src.edge")
 
@@ -73,7 +73,7 @@ local function initGame()
 	World:add_entity(cursor)
 	World:add_entity(player)
 
-	local timerUI = UI(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
+	local timerUI = Text(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
 end
 
 function love.load()
@@ -150,7 +150,7 @@ function love.draw()
 end
 
 -- ============ Scene: Gameplay ============
-local timerUI = UI(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
+local timerUI = Text(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
 function state.gameplay:enter()
 	love.mouse.setVisible(false)
 end
@@ -240,8 +240,8 @@ end
 -- =====================================
 
 -- ============ Scene: Menu ============
-local title = UI(title, 32, PALETTE.red, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100, true, 0)
-local pressKey = UI("Press Any Key To Fight", 16, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 80, true, 0)
+local title = Text(title, 32, PALETTE.red, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100, true, 0)
+local pressKey = Text("Press Any Key To Fight", 16, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 80, true, 0)
 function state.menu:enter()
 	local function titleWobbling()
 		Flux.to(title, 2, {rot = -0.1})
@@ -270,7 +270,7 @@ end
 -- =====================================
 
 -- ============ Scene: Pause ============
-local pauseText = UI("PAUSE", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, true, 0)
+local pauseText = Text("PAUSE", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, true, 0)
 function state.pause:draw()
 	pauseText:draw()
 end
@@ -283,9 +283,9 @@ end
 -- =====================================
 
 -- ============ Scene: GameOver ============
-local gameoverText = UI("GAMEOVER", 40, PALETTE.red, SCREEN_WIDTH/2, SCREEN_HEIGHT/2-150, true, 0)
-local resultText = UI("You Lived For xx", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2-50, true, 0)
-local hintText = UI("R to Retry...", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2+50, true, 0)
+local gameoverText = Text("GAMEOVER", 40, PALETTE.red, SCREEN_WIDTH/2, SCREEN_HEIGHT/2-150, true, 0)
+local resultText = Text("You Lived For xx", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2-50, true, 0)
+local hintText = Text("R to Retry...", 40, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2+50, true, 0)
 function state.gameover:draw()
 	gameoverText:draw()
 	resultText.content = "You Live for " .. formatTimer(timer)

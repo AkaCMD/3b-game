@@ -1,5 +1,5 @@
-UI = class({
-    name = "UI",
+Text = class({
+    name = "Text",
     default_tostring = true
 })
 
@@ -10,7 +10,7 @@ UI = class({
 ---@param y number
 ---@param isCentered boolean
 ---@param rot number
-function UI:new(text, size, fontColor, x, y, isCentered, rot)
+function Text:new(text, size, fontColor, x, y, isCentered, rot)
     self.content = text or ""
     self.fontSize = size or 16
     self.r = fontColor[1] or 1
@@ -23,7 +23,7 @@ function UI:new(text, size, fontColor, x, y, isCentered, rot)
     self.rot = rot or 0
 end
 
-function UI:draw()
+function Text:draw()
 love.graphics.push()
     love.graphics.setColor(self.r, self.g, self.b, self.a)
     local font = Assets.fonts.RasterForgeRegular(self.fontSize)
