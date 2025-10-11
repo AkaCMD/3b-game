@@ -47,7 +47,6 @@ function Button:draw()
     lg.push()
     lg.translate(self.x, self.y)
     lg.translate(self.width/2, self.height/2)
-    lg.rotate(self.rotation * 5)
     lg.translate(-self.width/2, -self.height/2)
 
     local mx, my = love.mouse.getPosition()
@@ -73,7 +72,6 @@ function Button:draw()
 end
 
 function Button:update(dt)
-    self.rotation = self.rotation + dt
     local firstHover = firstOnly(self.hovered, self.lastHoverState)
     if firstHover and Button.hoverSfx then
         
@@ -93,13 +91,10 @@ function Button.checkClicks(buttons)
 end
 
 function Button:handleClick()
-    local firstClick = firstOnly(true, self.lastClickState)
-    if firstClick then
-        self.clickCount = (self.clickCount or 0) + 1
-        if self.onClick then
-            self.onClick(self)
-        end
-        if Button._clickSfx then
-        end
+    self.clickCount = (self.clickCount or 0) + 1
+    if self.onClick then
+        self.onClick(self)
+    end
+    if Button._clickSfx then
     end
 end
