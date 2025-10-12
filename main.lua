@@ -25,6 +25,7 @@ require("src.text")
 require("src.utils")
 require("src.edge")
 require("src.button")
+require("src.power_up_ui")
 
 World = World()
 
@@ -152,8 +153,10 @@ end
 
 -- ============ Scene: Gameplay ============
 local timerUI = Text(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
+local powerupUI
 function state.gameplay:enter()
 	love.mouse.setVisible(false)
+	powerupUI = PowerupScreenUI(Player)
 end
 
 local angle = 0
@@ -182,10 +185,17 @@ function state.gameplay:draw()
 		-- Draw UI elements
 		drawHeartShapes(vec2(110, SCREEN_HEIGHT - 90))
 		timerUI:draw()
+
     end)
+	if powerupUI then
+		powerupUI:draw()
+	end
 end
 
 function state.gameplay:update(dt)
+	if powerupUI and powerupUI:isActive() then
+		return
+	end
 	-- Check conditions
 	if player.health <= 0 then
 		sceneManager:enter(state.gameover)
@@ -221,6 +231,17 @@ function state.gameplay:update(dt)
 
 	-- Update UI elements
 	timerUI.content = formatTimer(timer)
+
+	if powerupUI then
+		powerupUI:update(dt)
+	end
+end
+
+function state.gameplay:mousereleased(x, y, button)
+	if powerupUI and powerupUI:isActive() then
+		powerupUI:mousereleased(x, y, button)
+		return
+	end
 end
 
 function state.gameplay:keypressed(key)
@@ -236,6 +257,12 @@ function state.gameplay:keypressed(key)
 	end
 	if key == "2" then
 		level:shrinkLevel()
+	end
+
+	if key == "u" then
+		if powerupUI then
+			powerupUI:show()
+		end
 	end
 end
 -- =====================================
