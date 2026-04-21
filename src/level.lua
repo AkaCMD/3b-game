@@ -1,4 +1,5 @@
 local Geometry = require("src.geometry")
+local LevelEdgeRules = require("src.level_edge_rules")
 
 LevelEvent = {
     EdgeRandomize = 1,
@@ -60,6 +61,7 @@ end
 
 function Level:syncEdgeGeometry()
     for _, edge in ipairs(self.edgeSlots) do
+        edge.levelCenter = self.center
         edge:refresh_geometry()
     end
 end
@@ -74,6 +76,7 @@ function Level:initEdges()
     table.insert(self.edgeSlots, 3, portalBottom)
     table.insert(self.edgeSlots, 4, Edge(corners[4], corners[1], EdgeType.Normal))
 	for _, en in ipairs(self.edgeSlots) do
+        en.levelCenter = self.center
         World:add_entity(en)
     end
 end
@@ -112,55 +115,34 @@ end
 function Level:randomizeEdges()
     local corners = self:getCorners()
     self.edgeSlots = {}
-    local needPortalPair = math.random() < 0.7
+    local layout = LevelEdgeRules.build_layout()
+    local portal_pairs = {}
 
-    local availablePositions = {1, 2, 3, 4}
-    local portalPositions = {}
+    for position, rule in pairs(layout) do
+        local start_corner = corners[position]
+        local end_corner = corners[position % 4 + 1]
 
-    if needPortalPair then
-        for i = 1, 2 do
-            local randomIndex = math.random(1, #availablePositions)
-            local pos = availablePositions[randomIndex]
-            table.insert(portalPositions, pos)
-            table.remove(availablePositions, randomIndex)
+        if rule.kind == LevelEdgeRules.EdgeKind.Portal then
+            local target_position = rule.target
+            local pair_key = ("%d:%d"):format(math.min(position, target_position), math.max(position, target_position))
+            if not portal_pairs[pair_key] then
+                local target_start = corners[target_position]
+                local target_end = corners[target_position % 4 + 1]
+                local portal_a, portal_b = CreatePortalPair(start_corner, end_corner, target_start, target_end)
+                portal_pairs[pair_key] = true
+                self.edgeSlots[position] = portal_a
+                self.edgeSlots[target_position] = portal_b
+            end
+        elseif rule.kind == LevelEdgeRules.EdgeKind.SpawnEnemy then
+            self.edgeSlots[position] = Edge(start_corner, end_corner, EdgeType.SpawnEnemy)
+        else
+            self.edgeSlots[position] = Edge(start_corner, end_corner, EdgeType.Normal)
         end
-
-        local pos1 = portalPositions[1]
-        local pos2 = portalPositions[2]
-        local startCorner1 = corners[pos1]
-        local endCorner1 = corners[pos1 % 4 + 1]
-        local startCorner2 = corners[pos2]
-        local endCorner2 = corners[pos2 % 4 + 1]
-
-        local portalA, portalB = CreatePortalPair(startCorner1, endCorner1, startCorner2, endCorner2)
-
-        self.edgeSlots[pos1] = portalA
-        self.edgeSlots[pos2] = portalB
-    end
-
-    -- at least one enmey spawner edge
-    local enemyPosition = availablePositions[math.random(1, #availablePositions)]
-    local startCorner = corners[enemyPosition]
-    local endCorner = corners[enemyPosition % 4 + 1]
-    self.edgeSlots[enemyPosition] = Edge(startCorner, endCorner, EdgeType.SpawnEnemy)
-
-    for i = #availablePositions, 1, -1 do
-        if availablePositions[i] == enemyPosition then
-            table.remove(availablePositions, i)
-            break
-        end
-    end
-
-    local edgeTypes = {EdgeType.Normal, EdgeType.SpawnEnemy}
-    for _, pos in ipairs(availablePositions) do
-        local startCorner = corners[pos]
-        local endCorner = corners[pos % 4 + 1]
-        local randomType = edgeTypes[math.random(1, #edgeTypes)]
-        self.edgeSlots[pos] = Edge(startCorner, endCorner, randomType)
     end
 
     for _, edge in ipairs(self.edgeSlots) do
         if edge then
+            edge.levelCenter = self.center
             World:add_entity(edge)
         end
     end
