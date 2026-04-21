@@ -16,32 +16,47 @@ BulletType = { PlayerBullet = 1, EnemyBullet = 2}
 ---@param scale vec2
 ---@param speed number
 ---@param type integer Type of the bullet
-function Bullet:new(pos, rot, scale, speed, type)
+---@param mods table|nil
+function Bullet:new(pos, rot, scale, speed, type, mods)
 	---@class Bullet: Entity
+    mods = mods or {}
 	self:super(pos, scale, COLLIDER_TYPE.trigger)
 	self.speed = speed or 480
-	self.hitbox = vec2(4, 4)
-	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.rotation = rot
 	self.bulletType = type or BulletType.PlayerBullet
-    self:set_tag("bullet")
+    self.canWarpEdges = mods.portal_warp == true
 
-    local targetTags = { "enemy" }
+    local bulletSizeMultiplier = mods.size_multiplier or 1.0
+    if self.bulletType == BulletType.PlayerBullet then
+        self.scale.x = self.scale.x * bulletSizeMultiplier
+        self.scale.y = self.scale.y * bulletSizeMultiplier
+        self.hitbox = vec2(4 * bulletSizeMultiplier, 4 * bulletSizeMultiplier)
+    else
+        self.hitbox = vec2(4, 4)
+    end
+	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
+    self:set_tag("bullet")
     if self.bulletType == BulletType.PlayerBullet then
         self:set_tag("player_bullet")
-        targetTags = { "enemy" }
     elseif self.bulletType == BulletType.EnemyBullet then
         self:set_tag("enemy_bullet")
-        targetTags = { "player" }
     end
 
     self:add_component("move_forward", MoveForward())
     self:add_component("bounds_cleanup", BoundsCleanup({ delay = 1.5 }))
-    self:add_component("hit_targets", HitTargets({
-        targetTags = targetTags,
-        damage = 1,
-        destroyOnHit = true,
-    }))
+    if self.bulletType == BulletType.PlayerBullet then
+        self:add_component("hit_targets", HitTargets({
+            targetTags = { "enemy" },
+            damage = 1,
+            destroyOnHit = true,
+        }))
+    elseif self.bulletType == BulletType.EnemyBullet then
+        self:add_component("hit_targets", HitTargets({
+            targetTags = { "player" },
+            damage = 1,
+            destroyOnHit = true,
+        }))
+    end
 end
 
 function Bullet:update(dt, context)
@@ -59,13 +74,10 @@ function Bullet:draw()
 	end
 end
 
-function Bullet:onCollide(other)
-    Entity.onCollide(self, other)
-end
-
 function Bullet:free()
 	self.isValid = false
 	Bullet.release(self)
 end
+
 
 make_pooled(Bullet, 500)

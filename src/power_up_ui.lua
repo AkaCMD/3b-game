@@ -1,63 +1,59 @@
+local UpgradeDefinitions = require("src.upgrade_definitions")
+
 PowerupScreenUI = class({
     name = "PowerupScreenUI",
     default_tostring = true
 })
 
-local POWERUP_OPTIONS = {
-    {
-        text = "Warpable Bullet",
-        callback = function ()
-            print("powerup 1!")
-        end
-    },
-    {
-        text = "Portal Gun",
-        callback = function ()
-            print("powerup 2")
-        end
-    },
-    {
-        text = "Sheild",
-        callback = function ()
-            print("powerup 3")
-        end
-    },
-}
-
-function PowerupScreenUI:new(player_ref)
-    self.elements = {}
+function PowerupScreenUI:new(player_ref, on_upgrade_selected)
     self.player = player_ref
     self.active = false
-    self:initElements()
+    self.elements = {}
+    self.options = {}
+    self.onUpgradeSelected = on_upgrade_selected
 end
 
-function PowerupScreenUI:initElements()
-    local buttonWidth, buttonHeight = 200, 450
+function PowerupScreenUI:buildElements()
+    self.elements = {}
+
+    local buttonWidth, buttonHeight = 200, 260
     local spacing = 20
-    local totalWidth = (#POWERUP_OPTIONS * buttonWidth) + ((#POWERUP_OPTIONS - 1) * spacing)
+    local totalWidth = (#self.options * buttonWidth) + ((#self.options - 1) * spacing)
     local startX = (SCREEN_WIDTH - totalWidth) / 2
 
-    for i, options in ipairs(POWERUP_OPTIONS) do
+    for i, option in ipairs(self.options) do
         local x = startX + (i - 1) * (buttonWidth + spacing)
         local y = (SCREEN_HEIGHT - buttonHeight) / 2
         local callback = function(btn)
             print("Selected: " .. btn.text)
-            if options.callback then
-                options.callback(self.player)
+            option.apply(self.player)
+            self.player:increment_upgrade_level(option.id)
+            if self.onUpgradeSelected then
+                self.onUpgradeSelected(option)
             end
+            love.audio.play(Sfx_power_up)
             self:hide()
         end
-        local btn = Button(x, y, buttonWidth, buttonHeight, options.text, callback)
+        local nextLevel = self.player:get_upgrade_level(option.id) + 1
+        local maxLevel = option.max_level or nextLevel
+        local label = ("%s\n\n%s\n\nLv.%d/%d"):format(option.title, option.description, nextLevel, maxLevel)
+        local btn = Button(x, y, buttonWidth, buttonHeight, label, callback)
         btn.fontSize = 20
         table.insert(self.elements, btn)
     end
 
-    local title = Text("Choose an Upgrade", 24, PALETTE.white, SCREEN_WIDTH/2, 30, true, 0)
+    local title = Text("选择一项升级", 24, PALETTE.white, SCREEN_WIDTH/2, 100, true, 0)
+    local subtitle = Text("完成指定波次后可继续强化你的构筑", 14, PALETTE.green, SCREEN_WIDTH/2, 135, true, 0)
     table.insert(self.elements, title)
+    table.insert(self.elements, subtitle)
 end
 
 function PowerupScreenUI:draw()
     if not self.active then return end
+
+    love.graphics.setColor(0, 0, 0, 0.75)
+    love.graphics.rectangle("fill", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+    love.graphics.setColor(PALETTE.white)
 
     for _, element in ipairs(self.elements) do
         element:draw()
@@ -98,4 +94,15 @@ end
 
 function PowerupScreenUI:isActive()
     return self.active
+end
+
+function PowerupScreenUI:offer_random_upgrades()
+    self.options = UpgradeDefinitions.pick_options(self.player, 3)
+    if #self.options == 0 then
+        return false
+    end
+
+    self:buildElements()
+    self:show()
+    return true
 end

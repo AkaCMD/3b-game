@@ -60,15 +60,7 @@ end
 
 function Level:syncEdgeGeometry()
     for _, edge in ipairs(self.edgeSlots) do
-        Geometry.apply_edge_geometry(edge)
-
-        if edge.edgeType == EdgeType.SpawnEnemy then
-            for _, en in ipairs(edge.enemySpawners) do
-                en.isValid = false
-            end
-            edge.enemySpawners = {}
-            edge:placeEnemySpawners(3)
-        end
+        edge:refresh_geometry()
     end
 end
 
@@ -177,10 +169,8 @@ end
 function Level:clearEdges()
     for i = #self.edgeSlots, 1, -1 do
         local en = self.edgeSlots[i]
+        en:clear_enemy_spawners()
         en.isValid = false
-        for _, spawner in ipairs(en.enemySpawners) do
-            spawner.isValid = false
-        end
         table.remove(self.edgeSlots, i)
     end
 end

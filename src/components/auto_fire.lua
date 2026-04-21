@@ -14,8 +14,13 @@ function AutoFire:new(options)
 end
 
 function AutoFire:update(entity, dt)
+    local cooldown = self.cooldown
+    if entity.get_auto_fire_cooldown then
+        cooldown = entity:get_auto_fire_cooldown(cooldown)
+    end
+
     self.elapsed = self.elapsed + dt
-    if self.elapsed < self.cooldown then
+    if self.elapsed < cooldown then
         return
     end
 

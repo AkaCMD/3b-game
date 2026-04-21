@@ -26,6 +26,7 @@ require("src.utils")
 require("src.edge")
 require("src.button")
 require("src.power_up_ui")
+require("src.wave_manager")
 
 World = World()
 
@@ -35,6 +36,8 @@ SCREEN_HEIGHT = 720
 local Timers = {}
 local level
 local effect
+local powerupUI
+local waveManager
 
 local title = "Bravo! Border Breaker"
 local default_font
@@ -65,6 +68,8 @@ local function initGame()
 	Bullet:flush_pool()
 
 	timer = 0.0
+    powerupUI = nil
+    waveManager = nil
 
 	level = Level(vec2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2), 480, 480, 0, false)
 
@@ -72,8 +77,6 @@ local function initGame()
 	local cursor = Cursor(vec2(0, 0), vec2(3, 3))
 	World:add_entity(cursor)
 	World:add_entity(player)
-
-	local timerUI = Text(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
 end
 
 function love.load()
@@ -151,10 +154,22 @@ end
 
 -- ============ Scene: Gameplay ============
 local timerUI = Text(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
-local powerupUI
+local waveStatusUI = Text("", 18, PALETTE.green, SCREEN_WIDTH/2, 88, true, 0)
+local upgradeHintUI = Text("", 14, PALETTE.white, SCREEN_WIDTH/2, 114, true, 0)
 function state.gameplay:enter()
 	love.mouse.setVisible(false)
-	powerupUI = PowerupScreenUI(player)
+	powerupUI = PowerupScreenUI(player, function()
+        if waveManager then
+            waveManager:complete_upgrade_selection()
+        end
+    end)
+    waveManager = WaveManager(World, {
+        initial_delay = 1.0,
+        upgrade_every = 3,
+        on_upgrade_ready = function()
+            return powerupUI and powerupUI:offer_random_upgrades() or false
+        end,
+    })
 end
 
 local angle = 0
@@ -183,6 +198,8 @@ function state.gameplay:draw()
 		-- Draw UI elements
 		drawHeartShapes(vec2(110, SCREEN_HEIGHT - 90))
 		timerUI:draw()
+        waveStatusUI:draw()
+        upgradeHintUI:draw()
 
     end)
 	if powerupUI then
@@ -220,6 +237,12 @@ function state.gameplay:update(dt)
 	-- Check collisions
 	World:check_collisions()
 
+    if waveManager then
+        waveManager:update(dt)
+        waveStatusUI.content = waveManager:get_wave_text()
+        upgradeHintUI.content = waveManager:get_upgrade_progress_text()
+    end
+
 	-- Update UI elements
 	timerUI.content = formatTimer(timer)
 
@@ -250,10 +273,11 @@ function state.gameplay:keypressed(key)
 		level:shrinkLevel()
 	end
 
-	if key == "u" then
-		if powerupUI then
-			powerupUI:show()
-		end
+	if key == "u" and powerupUI then
+        local shown = powerupUI:offer_random_upgrades()
+        if waveManager then
+            waveManager.awaitingUpgradeSelection = shown == true
+        end
 	end
 end
 -- =====================================
@@ -290,6 +314,10 @@ function state.menu:update(dt)
 end
 
 function love.mousereleased(x, y, button)
+    if powerupUI and powerupUI:isActive() then
+        powerupUI:mousereleased(x, y, button)
+        return
+    end
 	local allButtons = { myButton }
 	Button.checkClicks(allButtons)
 end

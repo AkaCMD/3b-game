@@ -22,7 +22,11 @@ function KeyboardMove:update(entity, dt)
 
     if dir:length_squared() > 0 then
         dir:normalise_inplace()
-        entity.pos:fused_multiply_add_inplace(dir, self.speed * dt)
+        local speed = self.speed
+        if entity.get_move_speed then
+            speed = entity:get_move_speed(speed)
+        end
+        entity.pos:fused_multiply_add_inplace(dir, speed * dt)
     end
 end
 

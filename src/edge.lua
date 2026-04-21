@@ -1,4 +1,8 @@
 local Geometry = require("src.geometry")
+local EdgeBlockContact = require("src.components.edge_block_contact")
+local EdgeDrawLine = require("src.components.edge_draw_line")
+local EdgeEnemySpawners = require("src.components.edge_enemy_spawners")
+local EdgePortal = require("src.components.edge_portal")
 
 Edge = class({
 	name = "Edge",
@@ -7,6 +11,26 @@ Edge = class({
 })
 
 EdgeType = {Normal = 1, SpawnEnemy = 2, Portal = 3, Damagable = 4}
+
+local EDGE_SETUPS = {
+    [EdgeType.Normal] = function(edge)
+        edge:add_component("draw_line", EdgeDrawLine(PALETTE.white))
+        edge:add_component("contact_rule", EdgeBlockContact({ label = "Normal" }))
+    end,
+    [EdgeType.SpawnEnemy] = function(edge)
+        edge:add_component("draw_line", EdgeDrawLine(PALETTE.red))
+        edge:add_component("contact_rule", EdgeBlockContact({ label = "SpawnEnemy" }))
+        edge:add_component("enemy_spawners", EdgeEnemySpawners(3))
+    end,
+    [EdgeType.Portal] = function(edge)
+        edge:add_component("draw_line", EdgeDrawLine(PALETTE.green))
+        edge:add_component("portal", EdgePortal())
+    end,
+    [EdgeType.Damagable] = function(edge)
+        edge:add_component("draw_line", EdgeDrawLine(PALETTE.white))
+        edge:add_component("contact_rule", EdgeBlockContact({ label = "Damagable" }))
+    end,
+}
 
 ---@class Edge
 ---@param start vec2
@@ -19,33 +43,45 @@ function Edge:new(start, finish, edgeTypeIndex)
 	self.endPos = finish
 	self.edgeType = edgeTypeIndex
 	self.scaleFactor = 1.0
-	---@type EnemySpawner[]
 	self.enemySpawners = {}
     self:set_tag("edge")
-	Geometry.apply_edge_geometry(self)
-
-	if self.edgeType == EdgeType.SpawnEnemy then
-		self:placeEnemySpawners(3)
-	end
+    self:refresh_geometry()
+    self:apply_type_setup(edgeTypeIndex)
 end
 
----@param num integer Number of enemy spawners in this edge
-function Edge:placeEnemySpawners(num)
-	---@type number
-	local interval = self.length / num
-	for i = 1, num do
-		local x, y = Geometry.lerp_point(
-			self.startPos.x,
-			self.startPos.y,
-			self.endPos.x,
-			self.endPos.y,
-			(interval*i - interval/2) / self.length
-		)
-		local pos = vec2(x, y)
-		local en = EnemySpawner(pos)
-		table.insert(self.enemySpawners, en)
-		self:spawn(en)
-	end
+function Edge:apply_type_setup(edgeTypeIndex)
+    local setup = EDGE_SETUPS[edgeTypeIndex]
+    if setup then
+        setup(self)
+    end
+end
+
+function Edge:refresh_geometry()
+    Geometry.apply_edge_geometry(self)
+    for _, component in ipairs(self.components) do
+        if component.on_geometry_changed then
+            component:on_geometry_changed(self)
+        end
+    end
+end
+
+function Edge:get_enemy_spawners()
+    local component = self:get_component("enemy_spawners")
+    return component and component:get_spawners() or self.enemySpawners
+end
+
+function Edge:clear_enemy_spawners()
+    local component = self:get_component("enemy_spawners")
+    if component then
+        component:clear(self)
+    end
+end
+
+function Edge:set_portal_target(targetEdge)
+    local portal = self:get_component("portal")
+    if portal then
+        portal:set_target(targetEdge)
+    end
 end
 
 function Edge:update(dt, context)
@@ -53,89 +89,28 @@ function Edge:update(dt, context)
 end
 
 function Edge:draw()
-	if self.edgeType == EdgeType.SpawnEnemy then
-		love.graphics.setColor(PALETTE.red)
-	elseif self.edgeType == EdgeType.Portal then
-		love.graphics.setColor(PALETTE.green)
-	elseif self.edgeType == EdgeType.Damagable then
-		love.graphics.setColor(PALETTE.white)
-	else
-		love.graphics.setColor(PALETTE.white)
-	end
-	love.graphics.line(self.startPos.x, self.startPos.y, self.endPos.x, self.endPos.y)
-
-	love.graphics.setColor(PALETTE.white)
+    Entity.draw(self)
 end
 
 ---@param other Entity
 function Edge:onCollide(other)
     Entity.onCollide(self, other)
-    local isPlayer = other:is(Player)
-    local isBullet = other:is(Bullet)
-
-    if self.edgeType == EdgeType.Normal then
-        if isPlayer then logger.info("Normal") end
-        if isBullet then other:free() end
-        return
-    end
-
-    if self.edgeType == EdgeType.SpawnEnemy then
-        if isPlayer then logger.info("SpawnEnemy") end
-        if isBullet then other:free() end
-        return
-    end
-
-    if self.edgeType == EdgeType.Damagable then
-        if isPlayer then logger.info("Damagable") end
-        if isBullet then other:free() end
-        return
-    end
-
-	if self.edgeType == EdgeType.Portal then
-		if isPlayer then
-			logger.info("Portal")
-			self:teleport(other)
-			love.audio.play(Sfx_portal)
-            return
-		end
-
-		if isBullet then
-			if other.bulletType == BulletType.PlayerBullet then
-				self:teleport(other)
-			else
-				other:free()
-			end
-            return
-		end
-    end
 end
 
 function CreatePortalPair(startA, endA, startB, endB)
 	local a = Edge(startA, endA, EdgeType.Portal)
 	local b = Edge(startB, endB, EdgeType.Portal)
-	a.targetPortal = b
-	b.targetPortal = a
+	a:set_portal_target(b)
+	b:set_portal_target(a)
 	return a, b
 end
 
 ---@param e Entity	Player or Bullet
 function Edge:teleport(e)
-    if self.edgeType ~= EdgeType.Portal or not self.targetPortal then return end
-
-    local x, y = Geometry.portal_exit(
-		e.pos.x,
-		e.pos.y,
-		self.startPos.x,
-		self.startPos.y,
-		self.endPos.x,
-		self.endPos.y,
-		self.targetPortal.startPos.x,
-		self.targetPortal.startPos.y,
-		self.targetPortal.endPos.x,
-		self.targetPortal.endPos.y,
-		8
-	)
-    e.pos = vec2(x, y)
+    local portal = self:get_component("portal")
+    if portal then
+        portal:teleport(self, e)
+    end
 end
 
 ---@param factor number
@@ -152,13 +127,5 @@ function Edge:scaler(factor)
 	self.startPos = scale_point(self.startPos)
 	self.endPos = scale_point(self.endPos)
 
-	Geometry.apply_edge_geometry(self)
-
-	if self.edgeType == EdgeType.SpawnEnemy then
-		for _, en in ipairs(self.enemySpawners) do
-			en.isValid = false
-		end
-		self.enemySpawners = {}
-		self:placeEnemySpawners(3)
-	end
+	self:refresh_geometry()
 end
