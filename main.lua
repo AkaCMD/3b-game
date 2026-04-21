@@ -27,6 +27,7 @@ require("src.edge")
 require("src.button")
 require("src.power_up_ui")
 require("src.wave_manager")
+local GameplayEffects = require("src.gameplay_effects")
 
 World = World()
 
@@ -156,6 +157,11 @@ end
 local timerUI = Text(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
 local waveStatusUI = Text("", 18, PALETTE.green, SCREEN_WIDTH/2, 88, true, 0)
 local upgradeHintUI = Text("", 14, PALETTE.white, SCREEN_WIDTH/2, 114, true, 0)
+
+local function is_upgrade_pause_active()
+	return powerupUI and powerupUI:isActive()
+end
+
 function state.gameplay:enter()
 	love.mouse.setVisible(false)
 	powerupUI = PowerupScreenUI(player, function()
@@ -176,7 +182,7 @@ local angle = 0
 function state.gameplay:draw()
     effect(function()
 
-		if t < shakeDuration then
+		if GameplayEffects.should_draw_shake(t, shakeDuration, is_upgrade_pause_active()) then
 			local dx = love.math.random(-shakeMagnitude, shakeMagnitude)
 			local dy = love.math.random(-shakeMagnitude, shakeMagnitude)
 			love.graphics.translate(dx, dy)
@@ -208,23 +214,28 @@ function state.gameplay:draw()
 end
 
 function state.gameplay:update(dt)
-	if powerupUI and powerupUI:isActive() then
-		return
-	end
-	-- Check conditions
-	if player.health <= 0 then
-		sceneManager:enter(state.gameover)
-	end
-
 	-- Update timers
 	for i = #Timers, 1, -1 do
 		Timers[i]:update(dt)
 	end
 
-	timer = timer + dt
 	if t < shakeDuration then
-		t = t + dt
+		t = GameplayEffects.advance_shake_time(t, shakeDuration, dt)
 	end
+
+	if is_upgrade_pause_active() then
+		if powerupUI then
+			powerupUI:update(dt)
+		end
+		return
+	end
+
+	-- Check conditions
+	if player.health <= 0 then
+		sceneManager:enter(state.gameover)
+	end
+
+	timer = timer + dt
 
 	angle = angle + dt * 0.8
 
