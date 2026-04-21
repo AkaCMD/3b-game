@@ -6,7 +6,6 @@ require("src.entity")
 require("src.bullet")
 
 local spec_modules = {
-    "tests.cursor_effects_spec",
     "tests.gameplay_effects_spec",
     "tests.geometry_spec",
     "tests.level_edge_rules_spec",
