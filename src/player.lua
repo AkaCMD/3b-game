@@ -1,3 +1,9 @@
+local AutoFire = require("src.components.auto_fire")
+local Damageable = require("src.components.damageable")
+local Invulnerability = require("src.components.invulnerability")
+local KeyboardMove = require("src.components.keyboard_move")
+local LookAtCursor = require("src.components.look_at_cursor")
+
 Player = class({
 	name = "Player",
 	extends = Entity,
@@ -12,39 +18,51 @@ function Player:new(pos, scale)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.health = 6
 	self.isInvincible = false
-	self.invincibleTimer = nil
+    self:set_tag("player")
+
+    self:add_component("look_at_cursor", LookAtCursor())
+    self:add_component("keyboard_move", KeyboardMove(200))
+    self:add_component("weapon", AutoFire({
+        cooldown = 0.15,
+        should_fire = function()
+            return love.mouse.isDown(1)
+        end,
+        create_projectile = function(entity)
+            return entity:shoot()
+        end,
+    }))
+    self:add_component("invulnerability", Invulnerability(1))
+    self:add_component("damageable", Damageable({
+        health = 6,
+        maxHealth = 6,
+        invulnerabilityComponent = "invulnerability",
+        on_damaged = function(entity, dmg)
+            local invulnerability = entity:get_component("invulnerability")
+            if invulnerability then
+                invulnerability:trigger(entity)
+            end
+            entity:emit("player_take_damage", { player = entity, damage = dmg })
+            love.audio.play(Sfx_hurt)
+        end,
+        on_death = function(entity)
+            entity:free()
+        end,
+    }))
 end
 
-function Player:update(dt, level)
-	if self.invincibleTimer then
-		self.invincibleTimer:update(dt)
-	end
+function Player:update(dt, context)
 	self.lastPos = self.pos:copy()
-	Entity:update(dt)
-
-    self:lookAtCursor()
-
-	local dir = vec2(0, 0)
-    if love.keyboard.isDown("a") then dir.x = dir.x - 1 end
-    if love.keyboard.isDown("d") then dir.x = dir.x + 1 end
-    if love.keyboard.isDown("w") then dir.y = dir.y - 1 end
-    if love.keyboard.isDown("s") then dir.y = dir.y + 1 end
-
-    if dir:length_squared() > 0 then
-        dir:normalise_inplace()
-        self.pos:fused_multiply_add_inplace(dir, 200 * dt)
-    end
+	Entity.update(self, dt, context)
 end
 
 function Player:keypressed(key)
 	if key == "space" then
-		-- Explode!
 		self:explode()
 	end
 end
 
 function Player:draw()
-	Entity:draw()
+	Entity.draw(self)
 	local img = Assets.images.fighter
 	if self.lastPos.x > self.pos.x then
 		love.graphics.draw(img, self.pos.x, self.pos.y, math.rad(-10) + self.rotation, self.scale.x, self.scale.y, img:getWidth()/2, img:getHeight()/2)
@@ -53,11 +71,6 @@ function Player:draw()
 	else
 		love.graphics.draw(img, self.pos.x, self.pos.y, self.rotation, self.scale.x, self.scale.y, img:getWidth()/2, img:getHeight()/2)
 	end
-end
-
-function Player:lookAtCursor()
-    local mouseX, mouseY = love.mouse.getPosition()
-    self.rotation = math.atan2(mouseY - self.pos.y, mouseX - self.pos.x) + math.pi/2
 end
 
 function Player:shoot()
@@ -70,29 +83,27 @@ end
 
 ---@param other Entity
 function Player:onCollide(other)
-	if other:is(Enemy) or (other:is(Bullet) and other.bulletType == BulletType.EnemyBullet) then
-		if self.isInvincible then return end
-		self:takeDamage(1)
-		other:free()
-	end
+    Entity.onCollide(self, other)
 end
 
 function Player:explode()
-	self.health = self.health - 1
+    local damageable = self:get_component("damageable")
+    if damageable then
+        damageable:change_health(self, -1)
+    else
+	    self.health = self.health - 1
+    end
 	love.audio.play(Sfx_big_explosion)
-	World:clear_all_enemies()
-	World:clear_all_enemy_bullets()
+	self.world:clear_all_enemies()
+	self.world:clear_all_enemy_bullets()
 end
 
 ---@param dmg integer
 function Player:takeDamage(dmg)
-	-- Player become invincible for second after getting hurt 
+    local damageable = self:get_component("damageable")
+    if damageable then
+        return damageable:apply_damage(self, dmg)
+    end
 	self.health = self.health - dmg
-	self.invincibleTimer = Batteries.timer(
-		1,
-		function () self.isInvincible = true end,
-		function () self.isInvincible = false end
-	)
-	bus:publish("player_take_damage")
-	love.audio.play(Sfx_hurt)
+    return true
 end

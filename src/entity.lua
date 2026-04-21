@@ -33,12 +33,118 @@ function Entity:new(pos, scale, collider_type)
 	self.isValid = true
 	self.health = 3
     self.colliderType = collider_type or COLLIDER_TYPE.dynamic
+    self.components = {}
+    self.componentIndex = {}
+    self.tags = {}
+    self.world = nil
 end
 
-function Entity:update(dt)
+function Entity:add_component(name, component)
+    assert(name ~= nil and component ~= nil, "Entity:add_component requires name and component")
+    component.name = component.name or name
+    self.componentIndex[name] = component
+    table.insert(self.components, component)
+
+    if component.init then
+        component:init(self)
+    end
+
+    if self.world and component.on_added_to_world then
+        component:on_added_to_world(self, self.world)
+    end
+
+    return component
+end
+
+function Entity:get_component(name)
+    return self.componentIndex[name]
+end
+
+function Entity:remove_component(name)
+    local component = self.componentIndex[name]
+    if not component then
+        return nil
+    end
+
+    for i = #self.components, 1, -1 do
+        if self.components[i] == component then
+            table.remove(self.components, i)
+            break
+        end
+    end
+    self.componentIndex[name] = nil
+
+    if component.on_removed_from_world and self.world then
+        component:on_removed_from_world(self, self.world)
+    end
+
+    return component
+end
+
+function Entity:set_tag(tag, enabled)
+    if enabled == false then
+        self.tags[tag] = nil
+        return
+    end
+    self.tags[tag] = true
+end
+
+function Entity:has_tag(tag)
+    return self.tags[tag] == true
+end
+
+function Entity:on_added_to_world(world)
+    self.world = world
+    for _, component in ipairs(self.components) do
+        if component.on_added_to_world then
+            component:on_added_to_world(self, world)
+        end
+    end
+end
+
+function Entity:on_removed_from_world(world)
+    for _, component in ipairs(self.components) do
+        if component.on_removed_from_world then
+            component:on_removed_from_world(self, world)
+        end
+    end
+    self.world = nil
+end
+
+function Entity:spawn(entity)
+    if self.world then
+        return self.world:add_entity(entity)
+    end
+    if World and World.add_entity then
+        return World:add_entity(entity)
+    end
+    return entity
+end
+
+function Entity:emit(eventName, payload)
+    if self.world and self.world.publish then
+        self.world:publish(eventName, payload)
+        return
+    end
+    if bus and bus.publish then
+        bus:publish(eventName, payload)
+    end
+end
+
+function Entity:update(dt, context)
+    for _, component in ipairs(self.components) do
+        if component.update then
+            component:update(self, dt, context)
+        end
+    end
 end
 
 function Entity:draw()
+    for _, component in ipairs(self.components) do
+        if component.draw then
+            component:draw(self)
+        end
+    end
 end
 
 ---@param other Entity
@@ -85,18 +191,18 @@ function Entity:drawHitbox()
 	end
 
     if self.colliderType == COLLIDER_TYPE.dynamic then
-        love.graphics.setColor(1, 0, 0, 1)  -- red
+        love.graphics.setColor(1, 0, 0, 1)
     elseif self.colliderType == COLLIDER_TYPE.static then
-        love.graphics.setColor(0.5, 0.5, 0.5, 0.7)  -- blue
+        love.graphics.setColor(0.5, 0.5, 0.5, 0.7)
     elseif self.colliderType == COLLIDER_TYPE.trigger then
-        love.graphics.setColor(1.0, 1.0, 0.2, 0.5)  -- yellow
+        love.graphics.setColor(1.0, 1.0, 0.2, 0.5)
     end
     local hs = self.hs:pooled_copy():vector_mul(self.scale)
     local corners = {
-        vec2:pooled(self.pos.x - hs.x, self.pos.y - hs.y), -- Top-left
-        vec2:pooled(self.pos.x + hs.x, self.pos.y - hs.y), -- Top-right
-        vec2:pooled(self.pos.x + hs.x, self.pos.y + hs.y), -- Bottom-right
-        vec2:pooled(self.pos.x - hs.x, self.pos.y + hs.y)  -- Bottom-left
+        vec2:pooled(self.pos.x - hs.x, self.pos.y - hs.y),
+        vec2:pooled(self.pos.x + hs.x, self.pos.y - hs.y),
+        vec2:pooled(self.pos.x + hs.x, self.pos.y + hs.y),
+        vec2:pooled(self.pos.x - hs.x, self.pos.y + hs.y)
     }
     if self.rotation ~= 0 then
         local cos_r = math.cos(self.rotation)
@@ -126,4 +232,9 @@ end
 
 ---@param other Entity
 function Entity:onCollide(other)
+    for _, component in ipairs(self.components) do
+        if component.on_collide then
+            component:on_collide(self, other)
+        end
+    end
 end

@@ -32,8 +32,6 @@ World = World()
 SCREEN_WIDTH = 720
 SCREEN_HEIGHT = 720
 
-local shootCooldown = 0.15
-local lastShotTime = 0
 local Timers = {}
 local level
 local effect
@@ -45,7 +43,7 @@ PALETTE = {
 	red   =	{1, 0, 0.267, 1},
 	green = {0, 0.58, 0.47, 1},
 }
-bus = Pubsub()
+bus = World
 
 -- Screen shake
 local t, shakeDuration, shakeMagnitude = 0, -1, 0
@@ -156,7 +154,7 @@ local timerUI = Text(timer, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
 local powerupUI
 function state.gameplay:enter()
 	love.mouse.setVisible(false)
-	powerupUI = PowerupScreenUI(Player)
+	powerupUI = PowerupScreenUI(player)
 end
 
 local angle = 0
@@ -211,14 +209,7 @@ function state.gameplay:update(dt)
 		t = t + dt
 	end
 
-	lastShotTime = lastShotTime + dt
 	angle = angle + dt * 0.8
-	-- Player shoots bullet
-	if love.mouse.isDown(1) and lastShotTime >= shootCooldown then
-        local newBullet = player:shoot()
-		World:add_entity(newBullet)
-        lastShotTime = 0
-    end
 
 	-- Update other systems
 	level:update(dt)

@@ -1,3 +1,6 @@
+local FloatY = require("src.components.float_y")
+local PickupOnTouch = require("src.components.pickup_on_touch")
+
 Item = class({
     name = "Item",
     extends = Entity,
@@ -14,15 +17,26 @@ function Item:new(pos, scale, type)
     self:super(pos, scale, COLLIDER_TYPE.trigger)
     self.pos = pos
     self.type = type
-    self.time = 0
-    self.baseY = self.pos.y
     self.hitbox = vec2(20, 20)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
+    self:set_tag("item")
+    self:add_component("float_y", FloatY(5, 1.5))
+    self:add_component("pickup", PickupOnTouch({
+        targetTags = { "player" },
+        on_pickup = function(entity, other)
+            local damageable = other:get_component("damageable")
+            if damageable then
+                damageable:change_health(other, 1)
+            else
+                other.health = other.health + 1
+            end
+            love.audio.play(Sfx_pickup)
+        end,
+    }))
 end
 
-function Item:update(dt)
-    self.time = self.time + dt
-    self.pos.y = sinwave(self.baseY, self.time, 5, 1.5)
+function Item:update(dt, context)
+    Entity.update(self, dt, context)
 end
 
 function Item:draw()
@@ -33,9 +47,5 @@ function Item:draw()
 end
 
 function Item:onCollide(other)
-    if other:is(Player) then
-        other.health = other.health + 1
-        love.audio.play(Sfx_pickup)
-        self.isValid = false
-    end
+    Entity.onCollide(self, other)
 end

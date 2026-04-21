@@ -1,3 +1,5 @@
+local Geometry = require("src.geometry")
+
 Edge = class({
 	name = "Edge",
 	extends = Entity,
@@ -15,18 +17,12 @@ function Edge:new(start, finish, edgeTypeIndex)
 	self:super(vec2((start.x + finish.x) / 2, (start.y + finish.y) / 2), vec2(1, 1), COLLIDER_TYPE.static)
 	self.startPos = start
 	self.endPos = finish
-	self.length = vec2.length(finish:vector_sub(start))
 	self.edgeType = edgeTypeIndex
 	self.scaleFactor = 1.0
-
-	if math.abs(finish.x - start.x) > math.abs(finish.y - start.y) then
-		self.hitbox = vec2(self.length, 5)
-	else
-		self.hitbox = vec2(5, self.length)
-	end
-	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	---@type EnemySpawner[]
 	self.enemySpawners = {}
+    self:set_tag("edge")
+	Geometry.apply_edge_geometry(self)
 
 	if self.edgeType == EdgeType.SpawnEnemy then
 		self:placeEnemySpawners(3)
@@ -38,19 +34,22 @@ function Edge:placeEnemySpawners(num)
 	---@type number
 	local interval = self.length / num
 	for i = 1, num do
-		local pos = lerp_vec2(self.startPos, self.endPos, (interval*i - interval/2) / self.length)
+		local x, y = Geometry.lerp_point(
+			self.startPos.x,
+			self.startPos.y,
+			self.endPos.x,
+			self.endPos.y,
+			(interval*i - interval/2) / self.length
+		)
+		local pos = vec2(x, y)
 		local en = EnemySpawner(pos)
 		table.insert(self.enemySpawners, en)
-		World:add_entity(en)
+		self:spawn(en)
 	end
 end
 
-function Edge:update(dt)
-	if self.edgeType == EdgeType.SpawnEnemy then
-		for _, spawner in ipairs(self.enemySpawners) do
-            spawner:update(dt)
-        end
-	end
+function Edge:update(dt, context)
+    Entity.update(self, dt, context)
 end
 
 function Edge:draw()
@@ -70,6 +69,7 @@ end
 
 ---@param other Entity
 function Edge:onCollide(other)
+    Entity.onCollide(self, other)
     local isPlayer = other:is(Player)
     local isBullet = other:is(Bullet)
 
@@ -96,6 +96,7 @@ function Edge:onCollide(other)
 			logger.info("Portal")
 			self:teleport(other)
 			love.audio.play(Sfx_portal)
+            return
 		end
 
 		if isBullet then
@@ -104,11 +105,8 @@ function Edge:onCollide(other)
 			else
 				other:free()
 			end
+            return
 		end
-    end
-
-    if isPlayer or (isBullet and other.bulletType == BulletType.PlayerBullet) then
-        self:teleport(other)
     end
 end
 
@@ -124,26 +122,20 @@ end
 function Edge:teleport(e)
     if self.edgeType ~= EdgeType.Portal or not self.targetPortal then return end
 
-    local t = project_ratio_on_segment(e.pos, self.startPos, self.endPos)
-
-    local dest = lerp_vec2(self.targetPortal.startPos, self.targetPortal.endPos, t)
-
-    local dx = self.targetPortal.endPos.x - self.targetPortal.startPos.x
-    local dy = self.targetPortal.endPos.y - self.targetPortal.startPos.y
-    local len = math.sqrt(dx*dx + dy*dy)
-    local nx, ny = -dy/len, dx/len
-    e.pos = vec2(dest.x + nx*8, dest.y + ny*8)
-end
-
-function project_ratio_on_segment(p, a, b)
-    local vx, vy = b.x - a.x, b.y - a.y
-    local wx, wy = p.x - a.x, p.y - a.y
-    local denom = vx*vx + vy*vy
-    if denom == 0 then
-        return 0
-    end
-    local t = (wx * vx + wy * vy) / denom
-    return Mathx.clamp(t, 0, 1)
+    local x, y = Geometry.portal_exit(
+		e.pos.x,
+		e.pos.y,
+		self.startPos.x,
+		self.startPos.y,
+		self.endPos.x,
+		self.endPos.y,
+		self.targetPortal.startPos.x,
+		self.targetPortal.startPos.y,
+		self.targetPortal.endPos.x,
+		self.targetPortal.endPos.y,
+		8
+	)
+    e.pos = vec2(x, y)
 end
 
 ---@param factor number
@@ -160,13 +152,7 @@ function Edge:scaler(factor)
 	self.startPos = scale_point(self.startPos)
 	self.endPos = scale_point(self.endPos)
 
-	-- update length and hitbox
-	self.length = self.length * factor
-    if math.abs(self.endPos.x - self.startPos.x) > math.abs(self.endPos.y - self.startPos.y) then
-        self.hitbox = vec2(self.length, 5)
-    else
-        self.hitbox = vec2(5, self.length)
-    end
+	Geometry.apply_edge_geometry(self)
 
 	if self.edgeType == EdgeType.SpawnEnemy then
 		for _, en in ipairs(self.enemySpawners) do

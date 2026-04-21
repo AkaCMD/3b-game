@@ -1,3 +1,5 @@
+local Geometry = require("src.geometry")
+
 logger = {
     content = {},
     stylel = {},
@@ -83,8 +85,7 @@ end
 ---@param t number
 ---@return vec2
 function lerp_vec2(a, b, t)
-    local x = Mathx.lerp(a.x, b.x, t)
-    local y = Mathx.lerp(a.y, b.y, t)
+    local x, y = Geometry.lerp_point(a.x, a.y, b.x, b.y, t)
     return vec2(x, y)
 end
 
@@ -98,5 +99,5 @@ function sinwave(baseY, time, amplitude, frequency)
 end
 
 function point_within(px, py, x, y, w, h)
-    return px > x and px < x + w and py > y and py < y + h
+    return Geometry.point_within(px, py, x, y, w, h)
 end

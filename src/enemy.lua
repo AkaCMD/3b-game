@@ -1,5 +1,10 @@
-require("src.item")
+require("src.Item")
 
+local AutoFire = require("src.components.auto_fire")
+local Damageable = require("src.components.damageable")
+local HitTargets = require("src.components.hit_targets")
+local TimedCollisionUnlock = require("src.components.timed_collision_unlock")
+local TrackTarget = require("src.components.track_target")
 local make_pooled = Batteries.make_pooled
 
 Enemy = class({
@@ -16,38 +21,52 @@ function Enemy:new(pos, rot, scale, speed)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
 	self.rotation = rot or 0
 	self.health = 1
+    self:set_tag("enemy")
 
-	self.shootCooldown = 0.5
-	self.lastShotTime = 0
+    self:add_component("collision_unlock", TimedCollisionUnlock(1))
+    self:add_component("track_target", TrackTarget({
+        speed = self.speed,
+        rotateSpeed = 3,
+        targetTag = "player",
+    }))
+    self:add_component("weapon", AutoFire({
+        cooldown = 0.5,
+        should_fire = function()
+            return true
+        end,
+        create_projectile = function(entity)
+            return entity:shoot()
+        end,
+    }))
+    self:add_component("contact_damage", HitTargets({
+        targetTags = { "player" },
+        damage = 1,
+        destroyOnHit = true,
+    }))
+    self:add_component("damageable", Damageable({
+        health = 1,
+        maxHealth = 1,
+        on_death = function(entity)
+            entity:emit("enemy_killed", { enemy = entity })
 
-    -- avoid being stopped by edge after spawning
-    self.hasCollision = false
-    self.noCollisionTimer = Batteries.timer(
-        1,
-        nil,
-        function () self.hasCollision = true end
-    )
+            local dropItemChance = 0.1
+            if math.random() < dropItemChance then
+                entity:spawn(Item(entity.pos:copy(), vec2(2, 2), ItemType.Heart))
+            end
+
+            for _ = 1, 5 do
+                local dir = math.random(-30, 30) / 10
+                local distance = math.random(0, 5)
+                BloodBatch:add(entity.pos.x + math.cos(dir)*distance, entity.pos.y + math.sin(dir)*distance, math.random(-30, 30) / 10, 3, 3, 6, 1)
+            end
+            love.audio.play(Sfx_explosion)
+            entity:free()
+        end,
+    }))
 end
 
-function Enemy:update(dt, level)
-    self.noCollisionTimer:update(dt)
-	-- Shoot cooldown
-	self.lastShotTime = self.lastShotTime + dt
-	if self.lastShotTime >= self.shootCooldown then
-		World:add_entity(self:shoot())
-		self.lastShotTime = 0
-	end
-
-	if player and player.pos then
-		local dir = (player.pos - self.pos):normalise_inplace()
-		local targetAngle = math.atan2(dir.y, dir.x)
-        local lerpSpeed = 3.0
-        local angleDiff = (targetAngle - self.rotation + math.pi) % (2 * math.pi) - math.pi
-        self.rotation = self.rotation + angleDiff * lerpSpeed * dt
-
-		local moveDir = vec2(math.cos(self.rotation), math.sin(self.rotation))
-		self.pos:add_inplace(moveDir:scalar_mul_inplace(self.speed * dt))
-	end
+function Enemy:update(dt, context)
+    Entity.update(self, dt, context)
 end
 
 function Enemy:draw()
@@ -57,30 +76,10 @@ end
 
 ---@param other Entity
 function Enemy:onCollide(other)
-	if other:is(Bullet) and other.bulletType == BulletType.PlayerBullet then
-		self.health = self.health - 1
-    	if self.health <= 0 then
-			bus:publish("enemy_killed")
-
-			local dropItemChance = 0.1
-			if math.random() < dropItemChance then
-				World:add_entity(Item(self.pos:copy(), vec2(2, 2), ItemType.Heart))
-			end
-			-- draw blood
-			for i = 1, 5, 1 do
-                local dir = math.random(-30, 30) / 10;
-                local distance = math.random(0, 5);
-                BloodBatch:add(self.pos.x + math.cos(dir)*distance, self.pos.y + math.sin(dir)*distance, math.random(-30, 30) / 10, 3, 3, 6, 1);
-            end
-			love.audio.play(Sfx_explosion)
-        	self:free()
-    	end
-    	other:free()
-	end
+    Entity.onCollide(self, other)
 end
 
 function Enemy:free()
-	--why i can't just write Entity:free() ?
 	self.isValid = false
 	Enemy.release(self)
 end

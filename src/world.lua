@@ -1,3 +1,5 @@
+local PubsubImpl = Batteries.pubsub or require("lib.batteries.pubsub")
+
 World = class({
 	name = "World",
 	default_tostring = true
@@ -5,40 +7,125 @@ World = class({
 
 function World:new()
 	self.entities = {}
+    self.pendingEntities = {}
+    self.eventBus = PubsubImpl()
+    self.isIterating = false
+end
+
+function World:_attach_entity(en)
+    table.insert(self.entities, en)
+    if en.on_added_to_world then
+        en:on_added_to_world(self)
+    else
+        en.world = self
+    end
+    return en
+end
+
+function World:_flush_pending_entities()
+    if #self.pendingEntities == 0 then
+        return
+    end
+
+    for _, entity in ipairs(self.pendingEntities) do
+        self:_attach_entity(entity)
+    end
+    self.pendingEntities = {}
 end
 
 ---@param en Entity
 function World:add_entity(en)
-    table.insert(self.entities, en)
+    if not en then
+        return nil
+    end
+
+    if self.isIterating then
+        table.insert(self.pendingEntities, en)
+        return en
+    end
+
+    return self:_attach_entity(en)
 end
 
 --- Remove invalid entities
 ---@param idx integer
 function World:remove_entity(idx)
     local en = table.remove(self.entities, idx)
-	en:free()
+    if not en then
+        return nil
+    end
+    if en.isValid then
+	    en:free()
+    end
+    if en.on_removed_from_world then
+        en:on_removed_from_world(self)
+    else
+        en.world = nil
+    end
+    return en
+end
+
+function World:publish(eventName, payload)
+    self.eventBus:publish(eventName, payload)
+end
+
+function World:subscribe(eventName, handler)
+    self.eventBus:subscribe(eventName, handler)
+end
+
+function World:find_first_by_tag(tag)
+    for _, entity in ipairs(self.entities) do
+        if entity.isValid and entity:has_tag(tag) then
+            return entity
+        end
+    end
+    return nil
+end
+
+function World:find_all_by_tag(tag)
+    local result = {}
+    for _, entity in ipairs(self.entities) do
+        if entity.isValid and entity:has_tag(tag) then
+            table.insert(result, entity)
+        end
+    end
+    return result
+end
+
+function World:get_player()
+    return self:find_first_by_tag("player")
 end
 
 ---- Update all entities in the world
 ---@param dt number
 function World:update(dt, level)
+    self.isIterating = true
+    local context = {
+        world = self,
+        level = level,
+    }
+
 	for i = #self.entities, 1, -1 do
 	    local entity = self.entities[i]
 	    if entity.isValid then
-	        entity:update(dt, (entity:is(Player) or entity:is(Bullet) or entity:is(Enemy)) and level or nil)
+	        entity:update(dt, context)
 	    else
 	        self:remove_entity(i)
 	    end
 	end
+
+    self.isIterating = false
+    self:_flush_pending_entities()
 end
 
 ---- Check Collisions between entities
 function World:check_collisions()
+    self.isIterating = true
     for i = 1, #self.entities - 1 do
 		for j = i + 1, #self.entities do
 			---@type Entity, Entity
 			local a, b = self.entities[i], self.entities[j]
-			if a:overlaps(b) then
+            if a.isValid and b.isValid and a:overlaps(b) then
 				-- If enemy got shot
 				a:onCollide(b)
 				b:onCollide(a)
@@ -61,27 +148,35 @@ function World:check_collisions()
 			end
 		end
 	end
+    self.isIterating = false
+    self:_flush_pending_entities()
 end
 
 function World:clear()
     for i = #self.entities, 1, -1 do
         local entity = self.entities[i]
         entity:free()
+        if entity.on_removed_from_world then
+            entity:on_removed_from_world(self)
+        else
+            entity.world = nil
+        end
         table.remove(self.entities, i)
     end
+    self.pendingEntities = {}
 end
 
 function World:clear_all_enemies()
 	for i = #self.entities, 1, -1 do
         local entity = self.entities[i]
-		if entity:is(Enemy) then
-			for i = 1, 5, 1 do
-                local dir = math.random(-30, 30) / 10;
-                local distance = math.random(0, 5);
-                BloodBatch:add(entity.pos.x + math.cos(dir)*distance, entity.pos.y + math.sin(dir)*distance, math.random(-30, 30) / 10, 3, 3, 6, 1);
+		if entity:has_tag("enemy") then
+			for _ = 1, 5 do
+                local dir = math.random(-30, 30) / 10
+                local distance = math.random(0, 5)
+                BloodBatch:add(entity.pos.x + math.cos(dir)*distance, entity.pos.y + math.sin(dir)*distance, math.random(-30, 30) / 10, 3, 3, 6, 1)
             end
 		    entity:free()
-        	table.remove(self.entities, i)
+            self:remove_entity(i)
 		end
     end
 end
@@ -89,9 +184,9 @@ end
 function World:clear_all_enemy_bullets()
 	for i = #self.entities, 1, -1 do
         local entity = self.entities[i]
-		if entity:is(Bullet) and entity.bulletType == BulletType.EnemyBullet then
+		if entity:has_tag("enemy_bullet") then
 		    entity:free()
-        	table.remove(self.entities, i)
+            self:remove_entity(i)
 		end
     end
 end
