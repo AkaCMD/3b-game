@@ -36,9 +36,13 @@ function PowerupScreenUI:buildElements()
         end
         local nextLevel = self.player:get_upgrade_level(option.id) + 1
         local maxLevel = option.max_level or nextLevel
-        local label = ("%s\n\n%s\n\nLv.%d/%d"):format(option.title, option.description, nextLevel, maxLevel)
-        local btn = Button(x, y, buttonWidth, buttonHeight, label, callback)
-        btn.fontSize = 20
+        local btn = Button(x, y, buttonWidth, buttonHeight, option.title, callback)
+        btn.titleText = option.title
+        btn.descriptionText = option.description or ""
+        btn.footerText = ("Lv.%d/%d"):format(nextLevel, maxLevel)
+        btn.titleFontSize = 20
+        btn.descriptionFontSize = 14
+        btn.footerFontSize = 14
         table.insert(self.elements, btn)
     end
 

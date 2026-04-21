@@ -2,11 +2,15 @@ require("tests.test_bootstrap")
 
 local TestLib = require("tests.helpers.testlib")
 
+require("src.entity")
+require("src.bullet")
+
 local spec_modules = {
     "tests.geometry_spec",
     "tests.entity_component_spec",
     "tests.edge_component_spec",
     "tests.world_spec",
+    "tests.power_up_ui_spec",
     "tests.upgrade_definitions_spec",
     "tests.wave_manager_spec",
 }

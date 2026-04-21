@@ -10,6 +10,19 @@ local colours = {
     highlight = { 0.984375, 0.31640625, 0.51953125, 0.99609375 },
 }
 
+
+local function draw_button_text_block(text, fontSize, x, y, width, align)
+    if not text or text == "" then
+        return 0
+    end
+
+    local font = Assets.fonts.RasterForgeRegular(fontSize)
+    love.graphics.setFont(font)
+    love.graphics.printf(text, x, y, width, align or "center")
+    local _, wrapped = font:getWrap(text, width)
+    return #wrapped * font:getHeight()
+end
+
 local function firstOnly(currentVal, previousValRef)
    local first = (currentVal ~= previousValRef.val)
    previousValRef.val = currentVal
@@ -26,6 +39,13 @@ function Button:new(x, y, width, height, text, onClickCallback)
     self.height = height
     self.text = text or "Button"
     self.fontSize = 24
+    self.titleText = nil
+    self.descriptionText = nil
+    self.footerText = nil
+    self.titleFontSize = 24
+    self.descriptionFontSize = 14
+    self.footerFontSize = 16
+    self.textPadding = 16
     self.onClick = onClickCallback or function() print("Button clicked: " .. self.text) end
 
     self.hovered = false
@@ -64,9 +84,29 @@ function Button:draw()
     lg.rectangle("fill", 0, 0, self.width, self.height)
 
     lg.setColor(colours.text)
-    local font = Assets.fonts.RasterForgeRegular(self.fontSize)
-    love.graphics.setFont(font)
-    lg.printf(self.text, 0, (self.height - font:getHeight()) / 2, self.width, "center")
+    if self.titleText or self.descriptionText or self.footerText then
+        local innerX = self.textPadding
+        local innerWidth = self.width - self.textPadding * 2
+        local currentY = self.textPadding
+
+        currentY = currentY + draw_button_text_block(self.titleText or self.text, self.titleFontSize, innerX, currentY, innerWidth, "center")
+
+        if self.descriptionText and self.descriptionText ~= "" then
+            currentY = currentY + 12
+            currentY = currentY + draw_button_text_block(self.descriptionText, self.descriptionFontSize, innerX, currentY, innerWidth, "center")
+        end
+
+        if self.footerText and self.footerText ~= "" then
+            local footerFont = Assets.fonts.RasterForgeRegular(self.footerFontSize)
+            love.graphics.setFont(footerFont)
+            local footerY = self.height - self.textPadding - footerFont:getHeight()
+            lg.printf(self.footerText, innerX, footerY, innerWidth, "center")
+        end
+    else
+        local font = Assets.fonts.RasterForgeRegular(self.fontSize)
+        love.graphics.setFont(font)
+        lg.printf(self.text, 0, (self.height - font:getHeight()) / 2, self.width, "center")
+    end
 
     lg.pop()
 end
