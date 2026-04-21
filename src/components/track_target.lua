@@ -12,7 +12,12 @@ end
 
 function TrackTarget:update(entity, dt)
     local world = entity.world
-    local target = world and world:find_first_by_tag(self.targetTag) or player
+    local target
+    if world and self.targetTag == "player" and world.get_player then
+        target = world:get_player()
+    else
+        target = world and world:find_first_by_tag(self.targetTag) or player
+    end
     if not target or not target.pos then
         return
     end

@@ -10,6 +10,7 @@ function World:new()
     self.pendingEntities = {}
     self.eventBus = PubsubImpl()
     self.isIterating = false
+    self.playerEntity = nil
 end
 
 function World:_attach_entity(en)
@@ -18,6 +19,9 @@ function World:_attach_entity(en)
         en:on_added_to_world(self)
     else
         en.world = self
+    end
+    if en.has_tag and en:has_tag("player") then
+        self.playerEntity = en
     end
     return en
 end
@@ -53,6 +57,9 @@ function World:remove_entity(idx)
     local en = table.remove(self.entities, idx)
     if not en then
         return nil
+    end
+    if self.playerEntity == en then
+        self.playerEntity = nil
     end
     if en.isValid then
 	    en:free()
@@ -92,8 +99,23 @@ function World:find_all_by_tag(tag)
     return result
 end
 
+function World:get_tag_count(tag)
+    local count = 0
+    for _, entity in ipairs(self.entities) do
+        if entity.isValid and entity:has_tag(tag) then
+            count = count + 1
+        end
+    end
+    return count
+end
+
 function World:get_player()
-    return self:find_first_by_tag("player")
+    if self.playerEntity and self.playerEntity.isValid then
+        return self.playerEntity
+    end
+
+    self.playerEntity = self:find_first_by_tag("player")
+    return self.playerEntity
 end
 
 ---- Update all entities in the world
@@ -164,6 +186,7 @@ function World:clear()
         table.remove(self.entities, i)
     end
     self.pendingEntities = {}
+    self.playerEntity = nil
 end
 
 function World:clear_all_enemies()

@@ -172,6 +172,8 @@ function state.gameplay:enter()
     waveManager = WaveManager(World, {
         initial_delay = 1.0,
         upgrade_every = 3,
+        max_active_enemies = 12,
+        max_spawn_per_step = 3,
         on_upgrade_ready = function()
             return powerupUI and powerupUI:offer_random_upgrades() or false
         end,

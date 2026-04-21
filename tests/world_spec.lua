@@ -78,4 +78,23 @@ return {
             T.assert_equal(entity.updateCalls, 1)
         end,
     },
+    {
+        name = "get_tag_count 只统计有效且带标签的实体",
+        run = function()
+            local world = World()
+            local activeEnemy = FakeEntity(true)
+            activeEnemy:set_tag("enemy")
+            local inactiveEnemy = FakeEntity(false)
+            inactiveEnemy:set_tag("enemy")
+            local player = FakeEntity(true)
+            player:set_tag("player")
+
+            world:add_entity(activeEnemy)
+            world:add_entity(inactiveEnemy)
+            world:add_entity(player)
+
+            T.assert_equal(world:get_tag_count("enemy"), 1)
+            T.assert_equal(world:get_tag_count("player"), 1)
+        end,
+    },
 }

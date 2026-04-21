@@ -86,4 +86,46 @@ return {
             T.assert_true(manager.awaitingUpgradeSelection)
         end,
     },
+    {
+        name = "WaveManager 会限制同屏敌人上限",
+        run = function()
+            local spawner = FakeSpawner()
+            local world = FakeWorld({ spawner })
+            local manager = WaveManager(world, {
+                max_active_enemies = 2,
+                max_spawn_per_step = 10,
+            })
+
+            manager.currentWave = 1
+            manager.pendingEnemiesToSpawn = 5
+            world.enemyCount = 1
+
+            local spawned = manager:spawn_pending_enemies(world.enemyCount)
+
+            T.assert_equal(spawned, 1)
+            T.assert_equal(manager.pendingEnemiesToSpawn, 4)
+            T.assert_equal(#spawner.calls, 1)
+        end,
+    },
+    {
+        name = "WaveManager 会限制单帧刷怪批量以避免卡顿尖峰",
+        run = function()
+            local spawnerA = FakeSpawner()
+            local spawnerB = FakeSpawner()
+            local world = FakeWorld({ spawnerA, spawnerB })
+            local manager = WaveManager(world, {
+                max_active_enemies = 20,
+                max_spawn_per_step = 2,
+            })
+
+            manager.currentWave = 1
+            manager.pendingEnemiesToSpawn = 5
+
+            local spawned = manager:spawn_pending_enemies(0)
+
+            T.assert_equal(spawned, 2)
+            T.assert_equal(manager.pendingEnemiesToSpawn, 3)
+            T.assert_equal(#spawnerA.calls + #spawnerB.calls, 2)
+        end,
+    },
 }
