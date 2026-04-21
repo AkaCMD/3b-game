@@ -19,20 +19,25 @@ function Cursor:update(dt, context)
 	self.lastPos = self.pos
 	Entity.update(self, dt, context)
 	self.pos = vec2(love.mouse.getX(), love.mouse.getY())
-	CursorEffects.update_state(self.visual, self.pos.x, self.pos.y, dt)
+	CursorEffects.update_state(self.visual, self.pos.x, self.pos.y, dt, love.mouse.isDown(1))
 end
 
 function Cursor:draw()
 	Entity.draw(self)
 
 	local img = Assets.images.cursor
+	local draw_x = self.visual.render_x + self.visual.offset_x
+	local draw_y = self.visual.render_y + self.visual.offset_y
+	local draw_scale_x = self.baseScale.x * self.visual.scale_x
+	local draw_scale_y = self.baseScale.y * self.visual.scale_y
+
 	love.graphics.draw(
 		img,
-		self.pos.x,
-		self.pos.y,
+		draw_x,
+		draw_y,
 		self.visual.rotation,
-		self.baseScale.x,
-		self.baseScale.y,
+		draw_scale_x,
+		draw_scale_y,
 		img:getWidth()/2,
 		img:getHeight()/2
 	)
