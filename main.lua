@@ -298,9 +298,6 @@ end
 -- ============ Scene: Menu ============
 local title = Text(title, 32, PALETTE.red, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100, true, 0)
 local pressKey = Text("Press Any Key To Fight", 16, PALETTE.white, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 80, true, 0)
-local myButton = Button(100, 100, 200, 50, "Click me!", function(btn)
-	print("Button '" .. btn.text .. "' clicked! Count: " .. (btn.clickCount or 0))
-end)
 function state.menu:enter()
 	local function titleWobbling()
 		Flux.to(title, 2, {rot = -0.1})
@@ -319,11 +316,9 @@ end
 function state.menu:draw()
 	title:draw()
 	pressKey:draw()
-	myButton:draw()
 end
 
 function state.menu:update(dt)
-	myButton:update(dt)
 end
 
 function love.mousereleased(x, y, button)
@@ -331,8 +326,6 @@ function love.mousereleased(x, y, button)
         powerupUI:mousereleased(x, y, button)
         return
     end
-	local allButtons = { myButton }
-	Button.checkClicks(allButtons)
 end
 
 function state.menu:keypressed(key)
