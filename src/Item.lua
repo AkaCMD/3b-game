@@ -1,5 +1,5 @@
+local CollisionAction = require("src.components.collision_action")
 local FloatY = require("src.components.float_y")
-local PickupOnTouch = require("src.components.pickup_on_touch")
 
 Item = class({
     name = "Item",
@@ -21,9 +21,10 @@ function Item:new(pos, scale, type)
 	self.hs = self.hitbox:pooled_copy():scalar_mul_inplace(0.5)
     self:set_tag("item")
     self:add_component("float_y", FloatY(5, 1.5))
-    self:add_component("pickup", PickupOnTouch({
+    self:add_component("pickup", CollisionAction({
         targetTags = { "player" },
-        on_pickup = function(entity, other)
+        consume_self = true,
+        action = function(entity, other)
             local damageable = other:get_component("damageable")
             if damageable then
                 damageable:change_health(other, 1)
@@ -31,6 +32,7 @@ function Item:new(pos, scale, type)
                 other.health = other.health + 1
             end
             love.audio.play(Sfx_pickup)
+            return true
         end,
     }))
 end

@@ -1,5 +1,5 @@
 local BoundsCleanup = require("src.components.bounds_cleanup")
-local HitTargets = require("src.components.hit_targets")
+local CollisionAction = require("src.components.collision_action")
 local MoveForward = require("src.components.move_forward")
 local make_pooled = Batteries.make_pooled
 
@@ -45,16 +45,34 @@ function Bullet:new(pos, rot, scale, speed, type, mods)
     self:add_component("move_forward", MoveForward())
     self:add_component("bounds_cleanup", BoundsCleanup({ delay = 1.5 }))
     if self.bulletType == BulletType.PlayerBullet then
-        self:add_component("hit_targets", HitTargets({
+        self:add_component("collision_action", CollisionAction({
             targetTags = { "enemy" },
-            damage = 1,
-            destroyOnHit = true,
+            consume_self = true,
+            action = function(entity, other)
+                if other.receive_bullet_hit then
+                    return other:receive_bullet_hit(entity, 1)
+                end
+
+                local damageable = other.get_component and other:get_component("damageable")
+                if not damageable then
+                    return false
+                end
+
+                return damageable:apply_damage(other, 1, entity)
+            end,
         }))
     elseif self.bulletType == BulletType.EnemyBullet then
-        self:add_component("hit_targets", HitTargets({
+        self:add_component("collision_action", CollisionAction({
             targetTags = { "player" },
-            damage = 1,
-            destroyOnHit = true,
+            consume_self = true,
+            action = function(entity, other)
+                local damageable = other.get_component and other:get_component("damageable")
+                if not damageable then
+                    return false
+                end
+
+                return damageable:apply_damage(other, 1, entity)
+            end,
         }))
     end
 end

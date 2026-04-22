@@ -1,3 +1,5 @@
+require("src.enemy")
+
 EnemySpawner = class({
     name = "EnemySpawner",
     extends = Entity,
@@ -10,11 +12,43 @@ function EnemySpawner:new(pos)
     self:super(pos, vec2(0, 0))
     self.pos = pos or vec2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
     self.hasCollision = false
+    self.lastWaveNumber = 0
+    self.waveSpawnIndex = 0
     self:set_tag("enemy_spawner")
 end
 
 function EnemySpawner:update(dt, context)
     Entity.update(self, dt, context)
+end
+
+function EnemySpawner:next_enemy_type_for_wave(waveNumber)
+    waveNumber = waveNumber or 1
+    if self.lastWaveNumber ~= waveNumber then
+        self.lastWaveNumber = waveNumber
+        self.waveSpawnIndex = 0
+    end
+
+    self.waveSpawnIndex = self.waveSpawnIndex + 1
+
+    if waveNumber < 4 then
+        return EnemyType.Normal
+    end
+
+    if waveNumber < 8 then
+        if self.waveSpawnIndex % 2 == 0 then
+            return EnemyType.Shielded
+        end
+        return EnemyType.Normal
+    end
+
+    if waveNumber < 12 then
+        if self.waveSpawnIndex % 3 ~= 0 then
+            return EnemyType.Shielded
+        end
+        return EnemyType.Normal
+    end
+
+    return EnemyType.Shielded
 end
 
 function EnemySpawner:spawnWave(enemyCount, waveNumber)
@@ -38,7 +72,10 @@ function EnemySpawner:spawnWave(enemyCount, waveNumber)
     for i = 1, enemyCount do
         local offset = (i - (enemyCount + 1) / 2) * spread
         local spawnPos = vec2(self.pos.x + tx * offset, self.pos.y + ty * offset)
-        self:spawn(Enemy(spawnPos, 0, vec2(1.5, 1.5), enemySpeed))
+        local enemyType = self:next_enemy_type_for_wave(waveNumber)
+        self:spawn(Enemy(spawnPos, 0, vec2(1.5, 1.5), enemySpeed, {
+            enemyType = enemyType,
+        }))
         spawned = spawned + 1
     end
 

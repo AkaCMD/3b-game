@@ -1,8 +1,8 @@
-local AutoFire = require("src.components.auto_fire")
+local CooldownAction = require("src.components.cooldown_action")
 local Damageable = require("src.components.damageable")
 local Invulnerability = require("src.components.invulnerability")
 local KeyboardMove = require("src.components.keyboard_move")
-local LookAtCursor = require("src.components.look_at_cursor")
+local LookAtTarget = require("src.components.look_at_target")
 
 Player = class({
 	name = "Player",
@@ -34,15 +34,26 @@ function Player:new(pos, scale)
     }
     self:set_tag("player")
 
-    self:add_component("look_at_cursor", LookAtCursor())
+    self:add_component("look_at_target", LookAtTarget({
+        angle_offset = math.pi / 2,
+    }))
     self:add_component("keyboard_move", KeyboardMove(self.baseMoveSpeed))
-    self:add_component("weapon", AutoFire({
+    self:add_component("weapon", CooldownAction({
         cooldown = self.baseFireCooldown,
-        should_fire = function()
+        get_cooldown = function(entity, baseCooldown)
+            return entity:get_auto_fire_cooldown(baseCooldown)
+        end,
+        should_activate = function()
             return love.mouse.isDown(1)
         end,
-        create_projectile = function(entity)
-            return entity:shoot()
+        perform = function(entity)
+            local projectile = entity:shoot()
+            if not projectile then
+                return false
+            end
+
+            entity:spawn(projectile)
+            return true
         end,
     }))
     self:add_component("invulnerability", Invulnerability(1))

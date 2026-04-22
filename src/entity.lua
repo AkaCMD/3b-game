@@ -4,6 +4,35 @@ Entity = class({
 	default_tostring = true
 })
 
+local function clone_list(values)
+    if values == nil then
+        return {}
+    end
+
+    if type(values) == "string" then
+        return { values }
+    end
+
+    local result = {}
+    for i, value in ipairs(values) do
+        result[i] = value
+    end
+    return result
+end
+
+local function is_component_enabled(component)
+    return component.enabled ~= false
+end
+
+local function compare_components(a, b)
+    local ap = a.priority or 0
+    local bp = b.priority or 0
+    if ap == bp then
+        return (a._component_order or 0) < (b._component_order or 0)
+    end
+    return ap < bp
+end
+
 COLLIDER_TYPE = {
     dynamic = 0,
     static = 1,
@@ -35,15 +64,51 @@ function Entity:new(pos, scale, collider_type)
     self.colliderType = collider_type or COLLIDER_TYPE.dynamic
     self.components = {}
     self.componentIndex = {}
+    self._nextComponentOrder = 0
     self.tags = {}
     self.world = nil
 end
 
+function Entity:_normalise_component(name, component)
+    component.id = component.id or name
+    component.name = component.name or component.id
+    component.priority = component.priority or 0
+    if component.enabled == nil then
+        component.enabled = true
+    end
+    component.requires = clone_list(component.requires)
+    self._nextComponentOrder = self._nextComponentOrder + 1
+    component._component_order = self._nextComponentOrder
+    return component
+end
+
+function Entity:_sort_components()
+    table.sort(self.components, compare_components)
+end
+
+function Entity:_validate_component(name, component)
+    for _, dependency in ipairs(component.requires) do
+        assert(self.componentIndex[dependency] ~= nil, ("Component '%s' requires missing component '%s'"):format(name, dependency))
+    end
+
+    if component.validate then
+        local ok, err = component:validate(self)
+        assert(ok ~= false, err or ("Component '%s' failed validation"):format(name))
+    end
+end
+
 function Entity:add_component(name, component)
     assert(name ~= nil and component ~= nil, "Entity:add_component requires name and component")
-    component.name = component.name or name
+    local existing = self.componentIndex[name]
+    if existing then
+        self:remove_component(name)
+    end
+
+    component = self:_normalise_component(name, component)
     self.componentIndex[name] = component
     table.insert(self.components, component)
+    self:_sort_components()
+    self:_validate_component(name, component)
 
     if component.init then
         component:init(self)
@@ -58,6 +123,30 @@ end
 
 function Entity:get_component(name)
     return self.componentIndex[name]
+end
+
+function Entity:has_component(name)
+    return self.componentIndex[name] ~= nil
+end
+
+function Entity:require_component(name)
+    local component = self.componentIndex[name]
+    assert(component ~= nil, ("Entity missing required component '%s'"):format(name))
+    return component
+end
+
+function Entity:enable_component(name, enabled)
+    local component = self.componentIndex[name]
+    if not component then
+        return nil
+    end
+
+    if component.set_enabled then
+        component:set_enabled(enabled)
+    else
+        component.enabled = enabled ~= false
+    end
+    return component
 end
 
 function Entity:remove_component(name)
@@ -76,6 +165,10 @@ function Entity:remove_component(name)
 
     if component.on_removed_from_world and self.world then
         component:on_removed_from_world(self, self.world)
+    end
+
+    if component.reset then
+        component:reset(self)
     end
 
     return component
@@ -133,7 +226,7 @@ end
 
 function Entity:update(dt, context)
     for _, component in ipairs(self.components) do
-        if component.update then
+        if is_component_enabled(component) and component.update then
             component:update(self, dt, context)
         end
     end
@@ -141,7 +234,7 @@ end
 
 function Entity:draw()
     for _, component in ipairs(self.components) do
-        if component.draw then
+        if is_component_enabled(component) and component.draw then
             component:draw(self)
         end
     end
@@ -233,7 +326,7 @@ end
 ---@param other Entity
 function Entity:onCollide(other)
     for _, component in ipairs(self.components) do
-        if component.on_collide then
+        if is_component_enabled(component) and component.on_collide then
             component:on_collide(self, other)
         end
     end

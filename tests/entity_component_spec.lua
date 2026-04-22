@@ -2,10 +2,9 @@ require("tests.test_bootstrap")
 
 require("src.entity")
 require("src.world")
+local CollisionAction = require("src.components.collision_action")
 local Damageable = require("src.components.damageable")
-local HitTargets = require("src.components.hit_targets")
 local Invulnerability = require("src.components.invulnerability")
-local PickupOnTouch = require("src.components.pickup_on_touch")
 
 local T = require("tests.helpers.testlib")
 
@@ -117,16 +116,19 @@ return {
         end,
     },
     {
-        name = "HitTargets 会按 tag 命中 Damageable 并销毁来源实体",
+        name = "CollisionAction 会按 tag 命中 Damageable 并销毁来源实体",
         run = function()
             local attacker = Entity(vec2(0, 0), vec2(1, 1))
             local target = Entity(vec2(0, 0), vec2(1, 1))
             target:set_tag("enemy")
             target:add_component("damageable", Damageable({ health = 2 }))
-            attacker:add_component("hit_targets", HitTargets({
+            attacker:add_component("collision_action", CollisionAction({
                 targetTags = { "enemy" },
-                damage = 1,
-                destroyOnHit = true,
+                consume_self = true,
+                action = function(entity, other)
+                    local damageable = other:get_component("damageable")
+                    return damageable:apply_damage(other, 1, entity)
+                end,
             }))
 
             attacker:onCollide(target)
@@ -136,16 +138,18 @@ return {
         end,
     },
     {
-        name = "PickupOnTouch 会对目标执行回调并消费拾取物",
+        name = "CollisionAction 可用于拾取物交互并消费来源实体",
         run = function()
             local item = Entity(vec2(0, 0), vec2(1, 1))
             local playerEntity = Entity(vec2(0, 0), vec2(1, 1))
             playerEntity:set_tag("player")
             playerEntity:add_component("damageable", Damageable({ health = 2, maxHealth = 6 }))
-            item:add_component("pickup", PickupOnTouch({
+            item:add_component("pickup", CollisionAction({
                 targetTags = { "player" },
-                on_pickup = function(_, other)
+                consume_self = true,
+                action = function(_, other)
                     other:get_component("damageable"):change_health(other, 1)
+                    return true
                 end,
             }))
 

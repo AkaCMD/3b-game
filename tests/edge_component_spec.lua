@@ -9,14 +9,16 @@ local T = require("tests.helpers.testlib")
 
 return {
     {
-        name = "Edge 会按类型装配对应组件",
+        name = "Edge 会保留私有玩法状态而不是挂载专用组件",
         run = function()
-            local edge = Edge(vec2(0, 0), vec2(10, 0), EdgeType.Normal)
+            local edge = Edge(vec2(0, 0), vec2(10, 0), EdgeType.Portal)
+            local target = Edge(vec2(20, 0), vec2(30, 0), EdgeType.Normal)
 
-            T.assert_true(edge:get_component("draw_line") ~= nil)
-            T.assert_true(edge:get_component("contact_rule") ~= nil)
+            edge:set_portal_target(target)
+
             T.assert_true(edge:get_component("portal") == nil)
-            T.assert_true(edge:get_component("enemy_spawners") == nil)
+            T.assert_true(edge.portalTarget == target)
+            T.assert_equal(#edge:get_enemy_spawners(), 0)
         end,
     },
     {
