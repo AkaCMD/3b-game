@@ -1,7 +1,9 @@
 require("tests.test_bootstrap")
 
 require("src.entity")
+require("src.player")
 local Component = require("src.component")
+local LookAtTarget = require("src.components.look_at_target")
 
 local T = require("tests.helpers.testlib")
 
@@ -69,6 +71,36 @@ return {
             entity:enable_component("toggle", true)
             entity:update(0.016, {})
             T.assert_equal(component.updateCalls, 1)
+        end,
+    },
+    {
+        name = "LookAtTarget 支持回调直接返回 x y",
+        run = function()
+            local entity = Entity(vec2(10, 10), vec2(1, 1))
+            entity:add_component("look", LookAtTarget({
+                get_target_position = function()
+                    return 30, 10
+                end,
+            }))
+
+            entity:update(0.016, {})
+
+            T.assert_close(entity.rotation, 0, 1e-6)
+        end,
+    },
+    {
+        name = "Player 会跟随鼠标位置旋转",
+        run = function()
+            local originalGetPosition = love.mouse.getPosition
+            love.mouse.getPosition = function()
+                return 30, 10
+            end
+
+            local player = Player(vec2(10, 10), vec2(1, 1))
+            player:update(0.016, {})
+
+            love.mouse.getPosition = originalGetPosition
+            T.assert_close(player.rotation, math.pi / 2, 1e-6)
         end,
     },
 }

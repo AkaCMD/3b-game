@@ -6,11 +6,11 @@ LookAtTarget = class({
     default_tostring = true,
 })
 
-local function unpack_target(target)
-    if type(target) == "table" and target.x and target.y then
-        return target.x, target.y
+local function unpack_target(targetOrX, targetY)
+    if type(targetOrX) == "table" and targetOrX.x and targetOrX.y then
+        return targetOrX.x, targetOrX.y
     end
-    return target
+    return targetOrX, targetY
 end
 
 function LookAtTarget:new(options)
