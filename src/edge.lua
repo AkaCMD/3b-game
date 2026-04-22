@@ -8,11 +8,11 @@ Edge = class({
 
 EdgeType = {Normal = 1, SpawnEnemy = 2, Portal = 3, Damagable = 4}
 
-local EDGE_DRAW_COLORS = {
-    [EdgeType.Normal] = PALETTE.white,
-    [EdgeType.SpawnEnemy] = PALETTE.red,
-    [EdgeType.Portal] = PALETTE.green,
-    [EdgeType.Damagable] = PALETTE.white,
+local EDGE_DRAW_COLOR_KEYS = {
+    [EdgeType.Normal] = "white",
+    [EdgeType.SpawnEnemy] = "red",
+    [EdgeType.Portal] = "green",
+    [EdgeType.Damagable] = "white",
 }
 
 local EDGE_LABELS = {
@@ -21,6 +21,14 @@ local EDGE_LABELS = {
     [EdgeType.Portal] = "Portal",
     [EdgeType.Damagable] = "Damagable",
 }
+
+local function get_palette_color(name)
+    local palette = rawget(_G, "PALETTE")
+    if palette and palette[name] then
+        return palette[name]
+    end
+    return {1, 1, 1, 1}
+end
 
 ---@class Edge
 ---@param start vec2
@@ -110,10 +118,11 @@ function Edge:get_label()
 end
 
 function Edge:draw()
-    local color = EDGE_DRAW_COLORS[self.edgeType] or PALETTE.white
+    local colorKey = EDGE_DRAW_COLOR_KEYS[self.edgeType] or "white"
+    local color = get_palette_color(colorKey)
     love.graphics.setColor(color[1], color[2], color[3], color[4] or 1)
     love.graphics.line(self.startPos.x, self.startPos.y, self.endPos.x, self.endPos.y)
-    love.graphics.setColor(PALETTE.white)
+    love.graphics.setColor(get_palette_color("white"))
     Entity.draw(self)
 end
 
