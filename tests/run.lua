@@ -10,6 +10,7 @@ local spec_modules = {
     "tests.gameplay_effects_spec",
     "tests.geometry_spec",
     "tests.level_edge_rules_spec",
+    "tests.level_spec",
     "tests.entity_component_spec",
     "tests.enemy_spec",
     "tests.edge_component_spec",

@@ -2,9 +2,88 @@ local Geometry = require("src.geometry")
 local LevelEdgeRules = require("src.level_edge_rules")
 
 LevelEvent = {
-    EdgeRandomize = 1,
-    Shrink = 2,
+    EdgeRandomize = "edge_randomize",
+    Shrink = "shrink",
+    ShapeShift = "shape_shift",
 }
+
+local LEVEL_EVENT_ORDER = {
+    LevelEvent.EdgeRandomize,
+    LevelEvent.Shrink,
+    LevelEvent.ShapeShift,
+}
+
+ShrinkType = {
+    X = "x",
+    Y = "y",
+    Both = "both",
+}
+
+local SHRINK_VARIANTS = {
+    [ShrinkType.X] = {
+        widthFactor = 0.7,
+        heightFactor = 1.0,
+        label = "边界左右收缩",
+    },
+    [ShrinkType.Y] = {
+        widthFactor = 1.0,
+        heightFactor = 0.7,
+        label = "边界上下收缩",
+    },
+    [ShrinkType.Both] = {
+        widthFactor = 0.72,
+        heightFactor = 0.72,
+        label = "边界整体收缩",
+    },
+}
+
+local SHRINK_TYPE_ORDER = {
+    ShrinkType.X,
+    ShrinkType.Y,
+    ShrinkType.Both,
+}
+
+BoundaryShapeType = {
+    Wide = "wide",
+    Tall = "tall",
+    WideArena = "wide_arena",
+    TallArena = "tall_arena",
+}
+
+local BOUNDARY_SHAPE_VARIANTS = {
+    [BoundaryShapeType.Wide] = {
+        widthFactor = 1.3,
+        heightFactor = 0.82,
+        label = "边界横向拉伸",
+    },
+    [BoundaryShapeType.Tall] = {
+        widthFactor = 0.82,
+        heightFactor = 1.3,
+        label = "边界纵向拉伸",
+    },
+    [BoundaryShapeType.WideArena] = {
+        widthFactor = 1.4,
+        heightFactor = 0.72,
+        label = "边界变成长走廊",
+    },
+    [BoundaryShapeType.TallArena] = {
+        widthFactor = 0.72,
+        heightFactor = 1.4,
+        label = "边界变成竖走廊",
+    },
+}
+
+local BOUNDARY_SHAPE_ORDER = {
+    BoundaryShapeType.Wide,
+    BoundaryShapeType.Tall,
+    BoundaryShapeType.WideArena,
+    BoundaryShapeType.TallArena,
+}
+
+local function choose_random(list, random_int)
+    random_int = random_int or math.random
+    return list[random_int(1, #list)]
+end
 
 Level = class({
 	name = "Level",
@@ -98,24 +177,39 @@ function Level:update(dt)
 	end
 end
 
-function Level:randomEvent()
-    ---@type integer
-    local idx = math.random(#LevelEvent)
-    if idx == LevelEvent.EdgeRandomize then
-        logger.info("LevelEvent.EdgeRandomize")
-        -- clear old edges
-        self:clearEdges()
-        self:randomizeEdges()
-    elseif idx == LevelEvent.Shrink then
-        logger.info("LevelEvent.SizeChange")
-        self:shrinkLevel()
-    end
+function Level:apply_boundary_factors(widthFactor, heightFactor)
+    self.hs = vec2(
+        (self.width / 2) * widthFactor,
+        (self.height / 2) * heightFactor
+    )
+    self:setEdgesFromCorners(self:getCorners())
 end
 
-function Level:randomizeEdges()
+function Level:announce_event(text)
+    logger.info(text)
+    self.lastEventLabel = text
+    return text
+end
+
+function Level:randomEvent(random_int, random_float)
+    local eventId = choose_random(LEVEL_EVENT_ORDER, random_int)
+    if eventId == LevelEvent.EdgeRandomize then
+        self:announce_event("边界事件：边缘规则重排")
+        -- clear old edges
+        self:clearEdges()
+        self:randomizeEdges(random_int, random_float)
+    elseif eventId == LevelEvent.Shrink then
+        self:shrinkLevel(random_int)
+    elseif eventId == LevelEvent.ShapeShift then
+        self:shiftBoundaryShape(random_int)
+    end
+    return eventId
+end
+
+function Level:randomizeEdges(random_int, random_float)
     local corners = self:getCorners()
     self.edgeSlots = {}
-    local layout = LevelEdgeRules.build_layout()
+    local layout = LevelEdgeRules.build_layout(random_int, random_float)
     local portal_pairs = {}
 
     for position, rule in pairs(layout) do
@@ -157,31 +251,24 @@ function Level:clearEdges()
     end
 end
 
-ShrinkType = {
-    X = 1,
-    Y = 2,
-    Both = 3,
-}
-
-function Level:shrinkLevel()
-    local num = math.random(#ShrinkType)
-
-    if num == ShrinkType.X then
-        self.hs.x = self.hs.x * 0.5
-    elseif num == ShrinkType.Y then
-        self.hs.y = self.hs.y * 0.5
-    elseif num == ShrinkType.Both then
-        self.hs.x = self.hs.x * 0.5
-        self.hs.y = self.hs.y * 0.5
-    end
-
-    self:setEdgesFromCorners(self:getCorners())
+function Level:shrinkLevel(random_int)
+    local shrinkType = choose_random(SHRINK_TYPE_ORDER, random_int)
+    local variant = SHRINK_VARIANTS[shrinkType] or SHRINK_VARIANTS[ShrinkType.Both]
+    self:announce_event(variant.label)
+    self:apply_boundary_factors(variant.widthFactor, variant.heightFactor)
+    return shrinkType
 end
 
+function Level:shiftBoundaryShape(random_int)
+    local shapeType = choose_random(BOUNDARY_SHAPE_ORDER, random_int)
+    local variant = BOUNDARY_SHAPE_VARIANTS[shapeType] or BOUNDARY_SHAPE_VARIANTS[BoundaryShapeType.Wide]
+    self:announce_event(variant.label)
+    self:apply_boundary_factors(variant.widthFactor, variant.heightFactor)
+    return shapeType
+end
 
 function Level:resetLevelScale()
-    self.hs = vec2(self.width / 2, self.height / 2)
-    self:setEdgesFromCorners(self:getCorners())
+    self:apply_boundary_factors(1.0, 1.0)
 end
 
 function Level:drawOutline()
