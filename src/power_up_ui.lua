@@ -46,8 +46,8 @@ function PowerupScreenUI:buildElements()
         table.insert(self.elements, btn)
     end
 
-    local title = Text("选择一项升级", 24, PALETTE.white, SCREEN_WIDTH/2, 100, true, 0)
-    local subtitle = Text("完成指定波次后可继续强化你的构筑", 14, PALETTE.green, SCREEN_WIDTH/2, 135, true, 0)
+    local title = Text("Choose an Upgrade", 24, PALETTE.white, SCREEN_WIDTH/2, 100, true, 0)
+    local subtitle = Text("Clear more waves to keep building your loadout", 14, PALETTE.green, SCREEN_WIDTH/2, 135, true, 0)
     table.insert(self.elements, title)
     table.insert(self.elements, subtitle)
 end

@@ -1,4 +1,5 @@
 require("src.enemy")
+local Geometry = require("src.geometry")
 
 EnemySpawner = class({
     name = "EnemySpawner",
@@ -51,12 +52,16 @@ function EnemySpawner:next_enemy_type_for_wave(waveNumber)
     return EnemyType.Shielded
 end
 
-function EnemySpawner:spawnWave(enemyCount, waveNumber)
-    enemyCount = enemyCount or 1
-    waveNumber = waveNumber or 1
+local function distance_squared(ax, ay, bx, by)
+    local dx = ax - bx
+    local dy = ay - by
+    return dx * dx + dy * dy
+end
 
-    local spawned = 0
+function EnemySpawner:get_spawn_axes()
     local tx, ty = 1, 0
+    local nx, ny = 0, 0
+
     if self.parentEdge then
         local dx = self.parentEdge.endPos.x - self.parentEdge.startPos.x
         local dy = self.parentEdge.endPos.y - self.parentEdge.startPos.y
@@ -65,13 +70,75 @@ function EnemySpawner:spawnWave(enemyCount, waveNumber)
             tx = dx / length
             ty = dy / length
         end
+
+        local levelCenter = self.parentEdge.levelCenter or vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+        nx, ny = Geometry.segment_normal_towards_point(
+            self.parentEdge.startPos.x,
+            self.parentEdge.startPos.y,
+            self.parentEdge.endPos.x,
+            self.parentEdge.endPos.y,
+            levelCenter.x,
+            levelCenter.y
+        )
     end
+
+    return tx, ty, nx, ny
+end
+
+function EnemySpawner:is_position_occupied(x, y, occupiedPositions, minDistanceSq)
+    for _, pos in ipairs(occupiedPositions) do
+        if distance_squared(x, y, pos.x, pos.y) < minDistanceSq then
+            return true
+        end
+    end
+
+    local world = self.world
+    if not world then
+        return false
+    end
+
+    for _, enemy in ipairs(world:find_all_by_tag("enemy")) do
+        if enemy.isValid and distance_squared(x, y, enemy.pos.x, enemy.pos.y) < minDistanceSq then
+            return true
+        end
+    end
+
+    return false
+end
+
+function EnemySpawner:find_spawn_position(baseX, baseY, nx, ny, occupiedPositions)
+    local rowSpacing = 18
+    local maxRows = 8
+    local minDistanceSq = rowSpacing * rowSpacing
+
+    for row = 0, maxRows do
+        local x = baseX + nx * rowSpacing * row
+        local y = baseY + ny * rowSpacing * row
+        if not self:is_position_occupied(x, y, occupiedPositions, minDistanceSq) then
+            return vec2(x, y)
+        end
+    end
+
+    return vec2(baseX + nx * rowSpacing * maxRows, baseY + ny * rowSpacing * maxRows)
+end
+
+function EnemySpawner:spawnWave(enemyCount, waveNumber)
+    enemyCount = enemyCount or 1
+    waveNumber = waveNumber or 1
+
+    local spawned = 0
+    local tx, ty, nx, ny = self:get_spawn_axes()
+    local occupiedPositions = {}
 
     local spread = 18
     local enemySpeed = 100 + math.min(waveNumber - 1, 10) * 8
+    local spawnInset = 14
     for i = 1, enemyCount do
         local offset = (i - (enemyCount + 1) / 2) * spread
-        local spawnPos = vec2(self.pos.x + tx * offset, self.pos.y + ty * offset)
+        local baseX = self.pos.x + tx * offset + nx * spawnInset
+        local baseY = self.pos.y + ty * offset + ny * spawnInset
+        local spawnPos = self:find_spawn_position(baseX, baseY, nx, ny, occupiedPositions)
+        table.insert(occupiedPositions, spawnPos)
         local enemyType = self:next_enemy_type_for_wave(waveNumber)
         self:spawn(Enemy(spawnPos, 0, vec2(1.5, 1.5), enemySpeed, {
             enemyType = enemyType,

@@ -26,8 +26,8 @@ return {
             ui.options = {
                 {
                     id = "boundary_warp",
-                    title = "边界穿梭",
-                    description = "玩家子弹可穿越绿色边界",
+                    title = "Boundary Warp",
+                    description = "Your bullets pierce green boundaries",
                     max_level = 1,
                     apply = function() end,
                 },
@@ -36,9 +36,9 @@ return {
             ui:buildElements()
 
             local button = ui.elements[1]
-            T.assert_equal(button.text, "边界穿梭")
-            T.assert_equal(button.titleText, "边界穿梭")
-            T.assert_equal(button.descriptionText, "玩家子弹可穿越绿色边界")
+            T.assert_equal(button.text, "Boundary Warp")
+            T.assert_equal(button.titleText, "Boundary Warp")
+            T.assert_equal(button.descriptionText, "Your bullets pierce green boundaries")
             T.assert_equal(button.footerText, "Lv.1/1")
         end,
     },

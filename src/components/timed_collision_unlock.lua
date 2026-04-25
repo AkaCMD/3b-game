@@ -6,20 +6,23 @@ TimedCollisionUnlock = class({
 function TimedCollisionUnlock:new(delay)
     self.delay = delay or 1
     self.remaining = self.delay
+    self.originalColliderType = nil
 end
 
 function TimedCollisionUnlock:init(entity)
-    entity.hasCollision = false
+    self.originalColliderType = entity.colliderType
+    entity.hasCollision = true
+    entity.colliderType = COLLIDER_TYPE.trigger
 end
 
 function TimedCollisionUnlock:update(entity, dt)
-    if entity.hasCollision then
+    if entity.colliderType == self.originalColliderType then
         return
     end
 
     self.remaining = self.remaining - dt
     if self.remaining <= 0 then
-        entity.hasCollision = true
+        entity.colliderType = self.originalColliderType or COLLIDER_TYPE.dynamic
     end
 end
 

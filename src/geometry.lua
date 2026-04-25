@@ -43,6 +43,20 @@ function Geometry.segment_normal(ax, ay, bx, by)
     return -dy / len, dx / len
 end
 
+function Geometry.segment_normal_towards_point(ax, ay, bx, by, px, py)
+    local nx, ny = Geometry.segment_normal(ax, ay, bx, by)
+    local mx, my = Geometry.segment_midpoint(ax, ay, bx, by)
+    local toPointX = px - mx
+    local toPointY = py - my
+
+    if (nx * toPointX + ny * toPointY) < 0 then
+        nx = -nx
+        ny = -ny
+    end
+
+    return nx, ny
+end
+
 function Geometry.portal_exit(px, py, source_ax, source_ay, source_bx, source_by, target_ax, target_ay, target_bx, target_by, offset)
     local t = Geometry.project_ratio_on_segment(px, py, source_ax, source_ay, source_bx, source_by)
     local dest_x, dest_y = Geometry.lerp_point(target_ax, target_ay, target_bx, target_by, t)

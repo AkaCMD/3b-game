@@ -188,7 +188,7 @@ end
 
 function WaveManager:get_upgrade_progress_text()
     if self.awaitingUpgradeSelection then
-        return "请选择一项升级"
+        return "Choose an upgrade"
     end
 
     if self.upgradeEvery <= 0 then
@@ -201,7 +201,7 @@ function WaveManager:get_upgrade_progress_text()
         remaining = self.upgradeEvery
     end
 
-    return ("再完成 %d 波获得升级"):format(remaining)
+    return ("%d more waves until upgrade"):format(remaining)
 end
 
 return WaveManager

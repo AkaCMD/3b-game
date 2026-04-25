@@ -3,8 +3,8 @@ local UpgradeDefinitions = {}
 local definitions = {
     {
         id = "bullet_size",
-        title = "大口径弹头",
-        description = "子弹尺寸 +25%",
+        title = "Heavy Rounds",
+        description = "Bullet size +25%",
         max_level = 4,
         apply = function(player)
             player.upgrades.bullet_scale = player.upgrades.bullet_scale + 0.25
@@ -12,8 +12,8 @@ local definitions = {
     },
     {
         id = "boundary_warp",
-        title = "边界穿梭",
-        description = "玩家子弹可穿越绿色边界",
+        title = "Boundary Warp",
+        description = "Your bullets pierce green boundaries",
         max_level = 1,
         apply = function(player)
             player.upgrades.bullet_boundary_warp_enabled = true
@@ -21,8 +21,8 @@ local definitions = {
     },
     {
         id = "move_speed",
-        title = "轻盈机体",
-        description = "移动速度 +15%",
+        title = "Light Frame",
+        description = "Move speed +15%",
         max_level = 5,
         apply = function(player)
             player.upgrades.move_speed_multiplier = player.upgrades.move_speed_multiplier + 0.15
@@ -30,8 +30,8 @@ local definitions = {
     },
     {
         id = "fire_rate",
-        title = "高压供能",
-        description = "射速 +12%",
+        title = "Overclocked Feed",
+        description = "Fire rate +12%",
         max_level = 5,
         apply = function(player)
             player.upgrades.fire_rate_multiplier = player.upgrades.fire_rate_multiplier + 0.12
@@ -39,8 +39,8 @@ local definitions = {
     },
     {
         id = "boundary_boost",
-        title = "边界过载",
-        description = "穿越传送门后获得短暂强化",
+        title = "Boundary Surge",
+        description = "Gain short buff after portal travel",
         max_level = 3,
         apply = function(player)
             player.upgrades.boundary_boost_enabled = true
@@ -51,8 +51,8 @@ local definitions = {
     },
     {
         id = "restore_health",
-        title = "紧急维修",
-        description = "恢复 1 点生命",
+        title = "Emergency Repairs",
+        description = "Restore 1 health",
         max_level = 3,
         apply = function(player)
             local damageable = player.get_component and player:get_component("damageable") or nil

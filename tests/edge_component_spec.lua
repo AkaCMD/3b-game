@@ -2,6 +2,7 @@ require("tests.test_bootstrap")
 
 require("src.entity")
 require("src.world")
+require("src.enemy")
 require("src.enemy_spawner")
 require("src.edge")
 
@@ -69,6 +70,43 @@ return {
 
             T.assert_equal(#edge:get_enemy_spawners(), 3)
             T.assert_equal(#world.entities, 4)
+        end,
+    },
+    {
+        name = "刷怪器生成的敌人会向场地内侧偏移，避免卡在边界外",
+        run = function()
+            local world = World()
+            local edge = Edge(vec2(10, -30), vec2(10, 30), EdgeType.SpawnEnemy)
+            edge.levelCenter = vec2(0, 0)
+            world:add_entity(edge)
+
+            local spawner = edge:get_enemy_spawners()[2]
+            spawner:spawnWave(1, 1)
+            world:update(0)
+
+            local enemy = world:find_first_by_tag("enemy")
+            T.assert_true(enemy ~= nil)
+            T.assert_true(enemy.pos.x < 10, "敌人应生成在右侧边界的内侧")
+        end,
+    },
+    {
+        name = "刷怪器会避开已占用位置，防止同波敌人堆叠",
+        run = function()
+            local world = World()
+            local edge = Edge(vec2(10, -30), vec2(10, 30), EdgeType.SpawnEnemy)
+            edge.levelCenter = vec2(0, 0)
+            world:add_entity(edge)
+
+            local spawner = edge:get_enemy_spawners()[2]
+            local blockingEnemy = Enemy(vec2(-4, 0), 0, vec2(1, 1), 0)
+            world:add_entity(blockingEnemy)
+
+            spawner:spawnWave(1, 1)
+            world:update(0)
+
+            local enemies = world:find_all_by_tag("enemy")
+            T.assert_equal(#enemies, 2)
+            T.assert_true(not enemies[1]:overlaps(enemies[2]), "新敌人不应与已存在敌人重叠")
         end,
     },
 }
