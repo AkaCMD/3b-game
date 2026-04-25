@@ -44,6 +44,8 @@ return {
             local spawner = EnemySpawner(vec2(0, 0))
             local spawned = {}
 
+            ---@param entity Entity
+            ---@return Entity
             function spawner:spawn(entity)
                 table.insert(spawned, entity)
                 return entity

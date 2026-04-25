@@ -23,6 +23,9 @@ love.graphics.rotate = love.graphics.rotate or function() end
 love.graphics.scale = love.graphics.scale or function() end
 love.graphics.setLineWidth = love.graphics.setLineWidth or function() end
 love.graphics.setFont = love.graphics.setFont or function() end
+---@param x number
+---@param y number
+---@return number, number
 love.graphics.inverseTransformPoint = love.graphics.inverseTransformPoint or function(x, y) return x, y end
 love.keyboard = love.keyboard or {}
 love.keyboard.isDown = love.keyboard.isDown or function() return false end
@@ -61,12 +64,18 @@ Assets = Assets or {
     fonts = {
         RasterForgeRegular = function()
             return {
+                ---@param _ table
+                ---@param text string
+                ---@return integer, string[]
                 getWrap = function(_, text)
                     return #text, { text }
                 end,
                 getHeight = function()
                     return 16
                 end,
+                ---@param _ table
+                ---@param text string
+                ---@return integer
                 getWidth = function(_, text)
                     return #text * 8
                 end,

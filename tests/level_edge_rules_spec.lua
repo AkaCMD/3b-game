@@ -3,8 +3,13 @@ require("tests.test_bootstrap")
 local LevelEdgeRules = require("src.level_edge_rules")
 local T = require("tests.helpers.testlib")
 
+---@param sequence integer[]
+---@return fun(min: integer, max: integer): integer
 local function make_random_int(sequence)
     local index = 0
+    ---@param min integer
+    ---@param max integer
+    ---@return integer
     return function(min, max)
         index = index + 1
         local value = sequence[index]

@@ -4,6 +4,8 @@ Entity = class({
 	default_tostring = true
 })
 
+---@param values? string|string[]
+---@return table
 local function clone_list(values)
     if values == nil then
         return {}
@@ -20,10 +22,15 @@ local function clone_list(values)
     return result
 end
 
+---@param component Component|table
+---@return boolean
 local function is_component_enabled(component)
     return component.enabled ~= false
 end
 
+---@param a Component|table
+---@param b Component|table
+---@return boolean
 local function compare_components(a, b)
     local ap = a.priority or 0
     local bp = b.priority or 0
@@ -42,6 +49,7 @@ COLLIDER_TYPE = {
 ---Make an entity
 ---@param pos vec2
 ---@param scale vec2
+---@param collider_type? integer
 ---@class Entity
 ---@field rotation number
 ---@field pos vec2
@@ -69,6 +77,9 @@ function Entity:new(pos, scale, collider_type)
     self.world = nil
 end
 
+---@param name string
+---@param component Component|table
+---@return Component|table
 function Entity:_normalise_component(name, component)
     component.id = component.id or name
     component.name = component.name or component.id
@@ -86,6 +97,8 @@ function Entity:_sort_components()
     table.sort(self.components, compare_components)
 end
 
+---@param name string
+---@param component Component|table
 function Entity:_validate_component(name, component)
     for _, dependency in ipairs(component.requires) do
         assert(self.componentIndex[dependency] ~= nil, ("Component '%s' requires missing component '%s'"):format(name, dependency))
@@ -97,6 +110,9 @@ function Entity:_validate_component(name, component)
     end
 end
 
+---@param name string
+---@param component Component|table
+---@return Component|table
 function Entity:add_component(name, component)
     assert(name ~= nil and component ~= nil, "Entity:add_component requires name and component")
     local existing = self.componentIndex[name]
@@ -121,20 +137,29 @@ function Entity:add_component(name, component)
     return component
 end
 
+---@param name string
+---@return Component|table|nil
 function Entity:get_component(name)
     return self.componentIndex[name]
 end
 
+---@param name string
+---@return boolean
 function Entity:has_component(name)
     return self.componentIndex[name] ~= nil
 end
 
+---@param name string
+---@return Component|table
 function Entity:require_component(name)
     local component = self.componentIndex[name]
     assert(component ~= nil, ("Entity missing required component '%s'"):format(name))
     return component
 end
 
+---@param name string
+---@param enabled boolean
+---@return Component|table|nil
 function Entity:enable_component(name, enabled)
     local component = self.componentIndex[name]
     if not component then
@@ -149,6 +174,8 @@ function Entity:enable_component(name, enabled)
     return component
 end
 
+---@param name string
+---@return Component|table|nil
 function Entity:remove_component(name)
     local component = self.componentIndex[name]
     if not component then
@@ -174,6 +201,8 @@ function Entity:remove_component(name)
     return component
 end
 
+---@param tag string
+---@param enabled? boolean
 function Entity:set_tag(tag, enabled)
     if enabled == false then
         self.tags[tag] = nil
@@ -182,10 +211,13 @@ function Entity:set_tag(tag, enabled)
     self.tags[tag] = true
 end
 
+---@param tag string
+---@return boolean
 function Entity:has_tag(tag)
     return self.tags[tag] == true
 end
 
+---@param world World
 function Entity:on_added_to_world(world)
     self.world = world
     for _, component in ipairs(self.components) do
@@ -195,6 +227,7 @@ function Entity:on_added_to_world(world)
     end
 end
 
+---@param world World
 function Entity:on_removed_from_world(world)
     for _, component in ipairs(self.components) do
         if component.on_removed_from_world then
@@ -204,6 +237,8 @@ function Entity:on_removed_from_world(world)
     self.world = nil
 end
 
+---@param entity Entity
+---@return Entity
 function Entity:spawn(entity)
     if self.world then
         return self.world:add_entity(entity)
@@ -214,6 +249,8 @@ function Entity:spawn(entity)
     return entity
 end
 
+---@param eventName string
+---@param payload? table
 function Entity:emit(eventName, payload)
     if self.world and self.world.publish then
         self.world:publish(eventName, payload)
@@ -224,6 +261,8 @@ function Entity:emit(eventName, payload)
     end
 end
 
+---@param dt number
+---@param context? table
 function Entity:update(dt, context)
     for _, component in ipairs(self.components) do
         if is_component_enabled(component) and component.update then
@@ -274,6 +313,8 @@ function Entity:resolveCollision(other, balance)
 	return msv
 end
 
+---@param x number
+---@param y number
 function Entity:moveTo(x, y)
     self.pos:set(x, y)
 end

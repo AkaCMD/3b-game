@@ -13,6 +13,9 @@ function FakeSpawner:new()
     self.calls = {}
 end
 
+---@param enemyCount integer
+---@param waveNumber integer
+---@return integer
 function FakeSpawner:spawnWave(enemyCount, waveNumber)
     table.insert(self.calls, {
         enemyCount = enemyCount,
@@ -26,11 +29,14 @@ local FakeWorld = class({
     default_tostring = true,
 })
 
+---@param spawners? table[]
 function FakeWorld:new(spawners)
     self.spawners = spawners or {}
     self.enemyCount = 0
 end
 
+---@param tag string
+---@return table[]
 function FakeWorld:find_all_by_tag(tag)
     if tag == "enemy_spawner" then
         return self.spawners

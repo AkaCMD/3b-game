@@ -6,6 +6,9 @@ LevelEdgeRules.EdgeKind = {
     Portal = "portal",
 }
 
+---@param min integer
+---@param max integer
+---@return integer
 local function default_random_int(min, max)
     return math.random(min, max)
 end
@@ -14,12 +17,17 @@ local function default_random_float()
     return math.random()
 end
 
+---@param list table
+---@param index integer
+---@return any
 local function remove_at(list, index)
     local value = list[index]
     table.remove(list, index)
     return value
 end
 
+---@param list table
+---@return table
 local function clone_list(list)
     local copy = {}
     for i, value in ipairs(list) do
@@ -28,6 +36,9 @@ local function clone_list(list)
     return copy
 end
 
+---@param random_int? fun(min: integer, max: integer): integer
+---@param random_float? fun(): number
+---@return table
 function LevelEdgeRules.build_layout(random_int, random_float)
     random_int = random_int or default_random_int
     random_float = random_float or default_random_float
@@ -65,6 +76,9 @@ function LevelEdgeRules.build_layout(random_int, random_float)
     return layout
 end
 
+---@param layout table
+---@param kind string
+---@return integer
 function LevelEdgeRules.count_kind(layout, kind)
     local count = 0
     for _, edge in pairs(layout) do
@@ -75,6 +89,8 @@ function LevelEdgeRules.count_kind(layout, kind)
     return count
 end
 
+---@param layout table
+---@return integer[]
 function LevelEdgeRules.list_positions(layout)
     local positions = {}
     for position in pairs(layout) do
@@ -84,6 +100,8 @@ function LevelEdgeRules.list_positions(layout)
     return positions
 end
 
+---@param layout table
+---@return table
 function LevelEdgeRules.copy_layout(layout)
     local copy = {}
     for position, edge in pairs(layout) do

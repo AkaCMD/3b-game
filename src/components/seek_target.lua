@@ -6,6 +6,7 @@ SeekTarget = class({
     default_tostring = true,
 })
 
+---@param options? table
 function SeekTarget:new(options)
     options = options or {}
     self:super(options)
@@ -17,6 +18,9 @@ function SeekTarget:new(options)
     self.rotateEnabled = options.rotate_enabled ~= false
 end
 
+---@param entity Entity
+---@param context? table
+---@return Entity|nil
 function SeekTarget:get_target(entity, context)
     if self.resolve_target then
         return self.resolve_target(entity, context, self)
@@ -38,6 +42,9 @@ function SeekTarget:get_target(entity, context)
     return nil
 end
 
+---@param entity Entity
+---@param dt number
+---@param context? table
 function SeekTarget:update(entity, dt, context)
     local target = self:get_target(entity, context)
     if not target or not target.pos then

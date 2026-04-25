@@ -3,6 +3,7 @@ Damageable = class({
     default_tostring = true,
 })
 
+---@param options? table
 function Damageable:new(options)
     options = options or {}
     self.maxHealth = options.maxHealth or options.health or 1
@@ -13,21 +14,32 @@ function Damageable:new(options)
     self.on_death = options.on_death
 end
 
+---@param entity Entity
 function Damageable:init(entity)
     self.health = self.health or self.maxHealth
     entity.health = self.health
 end
 
+---@param entity Entity
+---@param health integer
+---@return integer
 function Damageable:set_health(entity, health)
     self.health = math.max(health, 0)
     entity.health = self.health
     return self.health
 end
 
+---@param entity Entity
+---@param delta integer
+---@return integer
 function Damageable:change_health(entity, delta)
     return self:set_health(entity, self.health + delta)
 end
 
+---@param entity Entity
+---@param amount integer
+---@param source? Entity
+---@return boolean
 function Damageable:can_apply_damage(entity, amount, source)
     if self.can_take_damage and not self.can_take_damage(entity, self, amount, source) then
         return false
@@ -43,6 +55,10 @@ function Damageable:can_apply_damage(entity, amount, source)
     return true
 end
 
+---@param entity Entity
+---@param amount integer
+---@param source? Entity
+---@return boolean
 function Damageable:apply_damage(entity, amount, source)
     if not self:can_apply_damage(entity, amount, source) then
         return false

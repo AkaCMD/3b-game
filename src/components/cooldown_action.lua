@@ -6,6 +6,7 @@ CooldownAction = class({
     default_tostring = true,
 })
 
+---@param options table
 function CooldownAction:new(options)
     options = options or {}
     self:super(options)
@@ -20,10 +21,14 @@ function CooldownAction:new(options)
     self.after_perform = options.after_perform
 end
 
+---@param _entity Entity
 function CooldownAction:reset(_entity)
     self.elapsed = self.startReady and self.cooldown or 0
 end
 
+---@param entity Entity
+---@param dt number
+---@param context? table
 function CooldownAction:update(entity, dt, context)
     self.elapsed = self.elapsed + dt
 

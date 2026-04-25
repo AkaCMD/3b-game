@@ -21,17 +21,23 @@ function FakeComponent:new()
     self.lastContext = nil
 end
 
+---@param entity Entity
 function FakeComponent:init(entity)
     self.initCalls = self.initCalls + 1
     self.lastEntity = entity
 end
 
+---@param entity Entity
+---@param dt number
+---@param context? table
 function FakeComponent:update(entity, dt, context)
     self.updateCalls = self.updateCalls + 1
     self.lastEntity = entity
     self.lastContext = context
 end
 
+---@param entity Entity
+---@param other Entity
 function FakeComponent:on_collide(entity, other)
     self.collideCalls = self.collideCalls + 1
     self.lastEntity = entity
@@ -49,6 +55,8 @@ function SpawnerEntity:new()
     self.spawned = false
 end
 
+---@param dt number
+---@param context? table
 function SpawnerEntity:update(dt, context)
     if self.spawned then
         return
@@ -85,6 +93,8 @@ return {
             local damaged = 0
             entity:add_component("damageable", Damageable({
                 health = 3,
+                ---@param _ Entity
+                ---@param amount integer
                 on_damaged = function(_, amount)
                     damaged = damaged + amount
                 end,
@@ -125,6 +135,9 @@ return {
             attacker:add_component("collision_action", CollisionAction({
                 targetTags = { "enemy" },
                 consume_self = true,
+                ---@param entity Entity
+                ---@param other Entity
+                ---@return boolean
                 action = function(entity, other)
                     local damageable = other:get_component("damageable")
                     return damageable:apply_damage(other, 1, entity)
@@ -147,6 +160,9 @@ return {
             item:add_component("pickup", CollisionAction({
                 targetTags = { "player" },
                 consume_self = true,
+                ---@param _ Entity
+                ---@param other Entity
+                ---@return boolean
                 action = function(_, other)
                     other:get_component("damageable"):change_health(other, 1)
                     return true
@@ -181,6 +197,7 @@ return {
             local spawner = SpawnerEntity()
             local received = false
 
+            ---@param payload table
             world:subscribe("ping", function(payload)
                 received = payload.ok == true
             end)

@@ -15,6 +15,8 @@ logger = {
     limit = 32,
 }
 
+---@param text string
+---@param style? table
 function logger.print(text, style)
     if (style == nil) then
         style = logger.styles.default
@@ -29,22 +31,28 @@ function logger.print(text, style)
     logger.stylel[logger.count] = style
 end
 
+---@param text string
 function logger.debug(text)
     logger.print(text, logger.styles.default)
 end
 
+---@param text string
 function logger.info(text)
     logger.print(text, logger.styles.green)
 end
 
+---@param text string
 function logger.warning(text)
     logger.print(text, logger.styles.yellow)
 end
 
+---@param text string
 function logger.error(text)
     logger.print(text, logger.styles.red)
 end
 
+---@param x? number
+---@param y? number
 function logger.draw(x, y)
     local index, style, text
     prefix = ''
@@ -94,10 +102,18 @@ end
 ---@param time number       elapsed time (seconds)
 ---@param amplitude number  max pixels up/down
 ---@param frequency number  cycles per second
+---@return number
 function sinwave(baseY, time, amplitude, frequency)
     return baseY + math.sin(time * math.pi * frequency) * amplitude
 end
 
+---@param px number
+---@param py number
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+---@return boolean
 function point_within(px, py, x, y, w, h)
     return Geometry.point_within(px, py, x, y, w, h)
 end

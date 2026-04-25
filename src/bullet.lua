@@ -48,6 +48,9 @@ function Bullet:new(pos, rot, scale, speed, type, mods)
         self:add_component("collision_action", CollisionAction({
             targetTags = { "enemy" },
             consume_self = true,
+            ---@param entity Bullet
+            ---@param other Entity
+            ---@return boolean
             action = function(entity, other)
                 if other.receive_bullet_hit then
                     return other:receive_bullet_hit(entity, 1)
@@ -65,6 +68,9 @@ function Bullet:new(pos, rot, scale, speed, type, mods)
         self:add_component("collision_action", CollisionAction({
             targetTags = { "player" },
             consume_self = true,
+            ---@param entity Bullet
+            ---@param other Entity
+            ---@return boolean
             action = function(entity, other)
                 local damageable = other.get_component and other:get_component("damageable")
                 if not damageable then
@@ -77,6 +83,8 @@ function Bullet:new(pos, rot, scale, speed, type, mods)
     end
 end
 
+---@param dt number
+---@param context? table
 function Bullet:update(dt, context)
 	Entity.update(self, dt, context)
 end

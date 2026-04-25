@@ -103,6 +103,8 @@ local function drawHeartShapes(startPos)
 	end
 end
 
+---@param timer number
+---@return string
 local function formatTimer(timer)
     local minutes = math.floor(timer / 60)
     local seconds = math.floor(timer % 60)
@@ -173,12 +175,15 @@ function love.load()
 	Sfx_small_hit:setVolume(0.2)
 end
 
+---@param dt number
 function love.update(dt)
 	Flux.update(dt)
 end
 
 local loveErrorHandler = love.errorhandler
 
+---@param msg string
+---@return function|string
 function love.errorhandler(msg)
     if lldebugger then
         error(msg, 2)
@@ -188,9 +193,11 @@ function love.errorhandler(msg)
 end
 
 function love.draw()
-	logger.draw()
 end
 
+---@param x number
+---@param y number
+---@param button integer
 function love.mousereleased(x, y, button)
     if app.powerupUI and app.powerupUI:isActive() then
         app.powerupUI:mousereleased(x, y, button)

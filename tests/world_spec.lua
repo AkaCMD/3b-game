@@ -11,6 +11,7 @@ local FakeEntity = class({
     default_tostring = true,
 })
 
+---@param valid boolean
 function FakeEntity:new(valid)
     self:super(vec2(0, 0), vec2(1, 1))
     self.isValid = valid

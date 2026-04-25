@@ -13,6 +13,9 @@ local OrderComponent = class({
     default_tostring = true,
 })
 
+---@param label string
+---@param order string[]
+---@param options? table
 function OrderComponent:new(label, order, options)
     options = options or {}
     self:super(options)

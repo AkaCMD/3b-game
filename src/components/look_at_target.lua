@@ -6,6 +6,9 @@ LookAtTarget = class({
     default_tostring = true,
 })
 
+---@param targetOrX vec2|number
+---@param targetY? number
+---@return number, number
 local function unpack_target(targetOrX, targetY)
     if type(targetOrX) == "table" and targetOrX.x and targetOrX.y then
         return targetOrX.x, targetOrX.y
@@ -13,6 +16,7 @@ local function unpack_target(targetOrX, targetY)
     return targetOrX, targetY
 end
 
+---@param options? table
 function LookAtTarget:new(options)
     options = options or {}
     self:super(options)
@@ -22,6 +26,9 @@ function LookAtTarget:new(options)
     end
 end
 
+---@param entity Entity
+---@param _dt number
+---@param context? table
 function LookAtTarget:update(entity, _dt, context)
     local tx, ty = unpack_target(self.get_target_position(entity, context, self))
     if tx == nil or ty == nil then

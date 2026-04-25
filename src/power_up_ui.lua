@@ -5,6 +5,8 @@ PowerupScreenUI = class({
     default_tostring = true
 })
 
+---@param player_ref Player
+---@param on_upgrade_selected? fun(option: table)
 function PowerupScreenUI:new(player_ref, on_upgrade_selected)
     self.player = player_ref
     self.active = false
@@ -24,6 +26,7 @@ function PowerupScreenUI:buildElements()
     for i, option in ipairs(self.options) do
         local x = startX + (i - 1) * (buttonWidth + spacing)
         local y = (SCREEN_HEIGHT - buttonHeight) / 2
+        ---@param btn Button
         local callback = function(btn)
             print("Selected: " .. btn.text)
             option.apply(self.player)
@@ -64,6 +67,7 @@ function PowerupScreenUI:draw()
     end
 end
 
+---@param dt number
 function PowerupScreenUI:update(dt)
     if not self.active then return end
 
@@ -74,6 +78,9 @@ function PowerupScreenUI:update(dt)
     end
 end
 
+---@param x number
+---@param y number
+---@param button integer
 function PowerupScreenUI:mousereleased(x, y, button)
     if not self.active then return end
 
@@ -96,10 +103,12 @@ function PowerupScreenUI:hide()
     self.active = false
 end
 
+---@return boolean
 function PowerupScreenUI:isActive()
     return self.active
 end
 
+---@return boolean
 function PowerupScreenUI:offer_random_upgrades()
     self.options = UpgradeDefinitions.pick_options(self.player, 3)
     if #self.options == 0 then

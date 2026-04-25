@@ -6,6 +6,7 @@ local definitions = {
         title = "Heavy Rounds",
         description = "Bullet size +25%",
         max_level = 4,
+        ---@param player Player
         apply = function(player)
             player.upgrades.bullet_scale = player.upgrades.bullet_scale + 0.25
         end,
@@ -15,6 +16,7 @@ local definitions = {
         title = "Boundary Warp",
         description = "Your bullets pierce green boundaries",
         max_level = 1,
+        ---@param player Player
         apply = function(player)
             player.upgrades.bullet_boundary_warp_enabled = true
         end,
@@ -24,6 +26,7 @@ local definitions = {
         title = "Light Frame",
         description = "Move speed +15%",
         max_level = 5,
+        ---@param player Player
         apply = function(player)
             player.upgrades.move_speed_multiplier = player.upgrades.move_speed_multiplier + 0.15
         end,
@@ -33,6 +36,7 @@ local definitions = {
         title = "Overclocked Feed",
         description = "Fire rate +12%",
         max_level = 5,
+        ---@param player Player
         apply = function(player)
             player.upgrades.fire_rate_multiplier = player.upgrades.fire_rate_multiplier + 0.12
         end,
@@ -42,6 +46,7 @@ local definitions = {
         title = "Boundary Surge",
         description = "Gain short buff after portal travel",
         max_level = 3,
+        ---@param player Player
         apply = function(player)
             player.upgrades.boundary_boost_enabled = true
             player.upgrades.boundary_boost_duration = player.upgrades.boundary_boost_duration + 1.0
@@ -54,6 +59,7 @@ local definitions = {
         title = "Emergency Repairs",
         description = "Restore 1 health",
         max_level = 3,
+        ---@param player Player
         apply = function(player)
             local damageable = player.get_component and player:get_component("damageable") or nil
             if damageable then
@@ -66,6 +72,7 @@ local definitions = {
     },
 }
 
+---@param list table
 local function shuffle(list)
     for i = #list, 2, -1 do
         local j = math.random(i)
@@ -73,10 +80,14 @@ local function shuffle(list)
     end
 end
 
+---@return table[]
 function UpgradeDefinitions.get_all()
     return definitions
 end
 
+---@param player Player
+---@param id string
+---@return integer
 function UpgradeDefinitions.get_level(player, id)
     if player and player.get_upgrade_level then
         return player:get_upgrade_level(id)
@@ -84,12 +95,18 @@ function UpgradeDefinitions.get_level(player, id)
     return 0
 end
 
+---@param player Player
+---@param definition table
+---@return boolean
 function UpgradeDefinitions.is_available(player, definition)
     local level = UpgradeDefinitions.get_level(player, definition.id)
     local maxLevel = definition.max_level or math.huge
     return level < maxLevel
 end
 
+---@param player Player
+---@param count? integer
+---@return table[]
 function UpgradeDefinitions.pick_options(player, count)
     local available = {}
     for _, definition in ipairs(definitions) do

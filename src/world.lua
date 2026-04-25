@@ -13,6 +13,8 @@ function World:new()
     self.playerEntity = nil
 end
 
+---@param en Entity
+---@return Entity
 function World:_attach_entity(en)
     table.insert(self.entities, en)
     if en.on_added_to_world then
@@ -72,14 +74,20 @@ function World:remove_entity(idx)
     return en
 end
 
+---@param eventName string
+---@param payload? table
 function World:publish(eventName, payload)
     self.eventBus:publish(eventName, payload)
 end
 
+---@param eventName string
+---@param handler function
 function World:subscribe(eventName, handler)
     self.eventBus:subscribe(eventName, handler)
 end
 
+---@param tag string
+---@return Entity|nil
 function World:find_first_by_tag(tag)
     for _, entity in ipairs(self.entities) do
         if entity.isValid and entity:has_tag(tag) then
@@ -89,6 +97,8 @@ function World:find_first_by_tag(tag)
     return nil
 end
 
+---@param tag string
+---@return Entity[]
 function World:find_all_by_tag(tag)
     local result = {}
     for _, entity in ipairs(self.entities) do
@@ -99,6 +109,8 @@ function World:find_all_by_tag(tag)
     return result
 end
 
+---@param tag string
+---@return integer
 function World:get_tag_count(tag)
     local count = 0
     for _, entity in ipairs(self.entities) do
@@ -120,6 +132,7 @@ end
 
 ---- Update all entities in the world
 ---@param dt number
+---@param level? Level
 function World:update(dt, level)
     self.isIterating = true
     local context = {

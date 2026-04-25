@@ -24,6 +24,9 @@ function Item:new(pos, scale, type)
     self:add_component("pickup", CollisionAction({
         targetTags = { "player" },
         consume_self = true,
+        ---@param entity Item
+        ---@param other Player
+        ---@return boolean
         action = function(entity, other)
             local damageable = other:get_component("damageable")
             if damageable then
@@ -37,6 +40,8 @@ function Item:new(pos, scale, type)
     }))
 end
 
+---@param dt number
+---@param context? table
 function Item:update(dt, context)
     Entity.update(self, dt, context)
 end
@@ -48,6 +53,7 @@ function Item:draw()
     end
 end
 
+---@param other Entity
 function Item:onCollide(other)
     Entity.onCollide(self, other)
 end

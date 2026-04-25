@@ -11,6 +11,13 @@ local colours = {
 }
 
 
+---@param text string
+---@param fontSize integer
+---@param x number
+---@param y number
+---@param width number
+---@param align? string
+---@return number
 local function draw_button_text_block(text, fontSize, x, y, width, align)
     if not text or text == "" then
         return 0
@@ -23,6 +30,9 @@ local function draw_button_text_block(text, fontSize, x, y, width, align)
     return #wrapped * font:getHeight()
 end
 
+---@param currentVal any
+---@param previousValRef table
+---@return any|nil
 local function firstOnly(currentVal, previousValRef)
    local first = (currentVal ~= previousValRef.val)
    previousValRef.val = currentVal
@@ -32,6 +42,12 @@ local function firstOnly(currentVal, previousValRef)
    return nil
 end
 
+---@param x number
+---@param y number
+---@param width number
+---@param height number
+---@param text? string
+---@param onClickCallback? fun(button: Button)
 function Button:new(x, y, width, height, text, onClickCallback)
     self.x = x
     self.y = y
@@ -111,6 +127,7 @@ function Button:draw()
     lg.pop()
 end
 
+---@param dt number
 function Button:update(dt)
     local firstHover = firstOnly(self.hovered, self.lastHoverState)
     if firstHover and Button.hoverSfx then
@@ -118,6 +135,7 @@ function Button:update(dt)
     end
 end
 
+---@param buttons Button[]
 function Button.checkClicks(buttons)
     local x, y, button = love.mouse.getX(), love.mouse.getY(), 1
     if button ~= 1 then return end

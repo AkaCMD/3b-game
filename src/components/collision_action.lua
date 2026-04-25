@@ -6,6 +6,8 @@ CollisionAction = class({
     default_tostring = true,
 })
 
+---@param tags? string|string[]
+---@return string[]
 local function clone_tags(tags)
     if tags == nil then
         return {}
@@ -22,6 +24,7 @@ local function clone_tags(tags)
     return result
 end
 
+---@param options table
 function CollisionAction:new(options)
     options = options or {}
     self:super(options)
@@ -34,10 +37,15 @@ function CollisionAction:new(options)
     self.triggerCount = 0
 end
 
+---@param _entity Entity
 function CollisionAction:reset(_entity)
     self.triggerCount = 0
 end
 
+---@param entity Entity
+---@param other Entity
+---@param context? table
+---@return boolean
 function CollisionAction:matches(entity, other, context)
     if not other or not other.isValid then
         return false
@@ -63,6 +71,9 @@ function CollisionAction:matches(entity, other, context)
     return true
 end
 
+---@param entity Entity
+---@param other Entity
+---@param context? table
 function CollisionAction:on_collide(entity, other, context)
     if self.maxTriggers and self.triggerCount >= self.maxTriggers then
         return

@@ -80,6 +80,9 @@ local BOUNDARY_SHAPE_ORDER = {
     BoundaryShapeType.TallArena,
 }
 
+---@param list table
+---@param random_int? fun(min: integer, max: integer): integer
+---@return any
 local function choose_random(list, random_int)
     random_int = random_int or math.random
     return list[random_int(1, #list)]
@@ -90,6 +93,11 @@ Level = class({
 	default_tostring = true
 })
 
+---@param center? vec2
+---@param width? number
+---@param height? number
+---@param rotation? number
+---@param isRotating? boolean
 function Level:new(center, width, height, rotation, isRotating)
 	self.center = center or vec2.new(360, 360)
 	self.width = width or 480
@@ -101,6 +109,8 @@ function Level:new(center, width, height, rotation, isRotating)
     self.eventTimer = Batteries.timer(
         30.0,
         nil,
+        ---@param _ any
+        ---@param timer table
         function(_, timer)
             self:resetLevelScale()
             BloodBatch:clear()
@@ -114,6 +124,8 @@ function Level:new(center, width, height, rotation, isRotating)
     self:initEdges()
 end
 
+---@param offset? number
+---@return vec2[]
 function Level:getCorners(offset)
     local raw_corners = Geometry.rectangle_corners(
         self.center.x,
@@ -130,6 +142,7 @@ function Level:getCorners(offset)
     return corners
 end
 
+---@param corners vec2[]
 function Level:setEdgesFromCorners(corners)
     self.edgeSlots[1].startPos, self.edgeSlots[1].endPos = corners[1], corners[2]
     self.edgeSlots[2].startPos, self.edgeSlots[2].endPos = corners[2], corners[3]
@@ -160,6 +173,8 @@ function Level:initEdges()
     end
 end
 
+---@param point vec2
+---@return boolean
 function Level:containsPoint(point)
     local rel_point = point - self.center
     local result = intersect.aabb_point_overlap(vec2(0, 0), self.hs, rel_point)
@@ -170,6 +185,7 @@ function Level:draw()
     self:drawOutline()
 end
 
+---@param dt number
 function Level:update(dt)
     self.eventTimer:update(dt)
 	if self.isRotating then
@@ -177,6 +193,8 @@ function Level:update(dt)
 	end
 end
 
+---@param widthFactor number
+---@param heightFactor number
 function Level:apply_boundary_factors(widthFactor, heightFactor)
     self.hs = vec2(
         (self.width / 2) * widthFactor,
@@ -185,12 +203,16 @@ function Level:apply_boundary_factors(widthFactor, heightFactor)
     self:setEdgesFromCorners(self:getCorners())
 end
 
+---@param text string
+---@return string
 function Level:announce_event(text)
-    logger.info(text)
     self.lastEventLabel = text
     return text
 end
 
+---@param random_int? fun(min: integer, max: integer): integer
+---@param random_float? fun(): number
+---@return string
 function Level:randomEvent(random_int, random_float)
     local eventId = choose_random(LEVEL_EVENT_ORDER, random_int)
     if eventId == LevelEvent.EdgeRandomize then
@@ -206,6 +228,8 @@ function Level:randomEvent(random_int, random_float)
     return eventId
 end
 
+---@param random_int? fun(min: integer, max: integer): integer
+---@param random_float? fun(): number
 function Level:randomizeEdges(random_int, random_float)
     local corners = self:getCorners()
     self.edgeSlots = {}
@@ -251,6 +275,8 @@ function Level:clearEdges()
     end
 end
 
+---@param random_int? fun(min: integer, max: integer): integer
+---@return string
 function Level:shrinkLevel(random_int)
     local shrinkType = choose_random(SHRINK_TYPE_ORDER, random_int)
     local variant = SHRINK_VARIANTS[shrinkType] or SHRINK_VARIANTS[ShrinkType.Both]
@@ -259,6 +285,8 @@ function Level:shrinkLevel(random_int)
     return shrinkType
 end
 
+---@param random_int? fun(min: integer, max: integer): integer
+---@return string
 function Level:shiftBoundaryShape(random_int)
     local shapeType = choose_random(BOUNDARY_SHAPE_ORDER, random_int)
     local variant = BOUNDARY_SHAPE_VARIANTS[shapeType] or BOUNDARY_SHAPE_VARIANTS[BoundaryShapeType.Wide]

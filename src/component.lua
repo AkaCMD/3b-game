@@ -3,6 +3,8 @@ Component = class({
     default_tostring = true,
 })
 
+---@param values? string|string[]
+---@return table
 local function clone_list(values)
     if values == nil then
         return {}
@@ -19,6 +21,7 @@ local function clone_list(values)
     return result
 end
 
+---@param options? table
 function Component:new(options)
     options = options or {}
     self.id = options.id or self.id or self.name
@@ -35,6 +38,8 @@ function Component:new(options)
     self.debug_name = options.debug_name or self.debug_name or self.id or self.name
 end
 
+---@param enabled boolean
+---@return Component
 function Component:set_enabled(enabled)
     self.enabled = enabled ~= false
     return self
@@ -44,10 +49,13 @@ function Component:is_enabled()
     return self.enabled ~= false
 end
 
+---@param _entity Entity
+---@return boolean
 function Component:validate(_entity)
     return true
 end
 
+---@param _entity Entity
 function Component:reset(_entity)
 end
 

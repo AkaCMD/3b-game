@@ -3,6 +3,8 @@ KeyboardMove = class({
     default_tostring = true,
 })
 
+---@param speed? number
+---@param controls? table
 function KeyboardMove:new(speed, controls)
     self.speed = speed or 200
     self.controls = controls or {
@@ -13,6 +15,8 @@ function KeyboardMove:new(speed, controls)
     }
 end
 
+---@param entity Entity
+---@param dt number
 function KeyboardMove:update(entity, dt)
     local dir = vec2(0, 0)
     if love.keyboard.isDown(self.controls.left) then dir.x = dir.x - 1 end

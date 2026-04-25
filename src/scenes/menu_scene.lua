@@ -1,3 +1,4 @@
+---@param app table
 return function(app)
     local scene = {}
     local titleText = Text(app.title, 32, PALETTE.red, SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100, true, 0)
@@ -24,9 +25,11 @@ return function(app)
         pressKeyText:draw()
     end
 
+    ---@param _dt number
     function scene:update(_dt)
     end
 
+    ---@param key string
     function scene:keypressed(key)
         if key ~= nil then
             app.sceneManager:enter(app.state.gameplay)

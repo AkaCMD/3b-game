@@ -1,5 +1,6 @@
 local GameplayEffects = require("src.gameplay_effects")
 
+---@param app table
 return function(app)
     local scene = {}
     local timerUI = Text(app.timer or 0, 30, PALETTE.red, SCREEN_WIDTH/2, 50, true, 0)
@@ -23,6 +24,7 @@ return function(app)
             upgrade_every = 3,
             max_active_enemies = 12,
             max_spawn_per_step = 3,
+            ---@return boolean
             on_upgrade_ready = function()
                 return app.powerupUI and app.powerupUI:offer_random_upgrades() or false
             end,
@@ -59,6 +61,7 @@ return function(app)
         end
     end
 
+    ---@param dt number
     function scene:update(dt)
         for i = #app.timers, 1, -1 do
             app.timers[i]:update(dt)
@@ -99,6 +102,9 @@ return function(app)
         end
     end
 
+    ---@param x number
+    ---@param y number
+    ---@param button integer
     function scene:mousereleased(x, y, button)
         if app.powerupUI and app.powerupUI:isActive() then
             app.powerupUI:mousereleased(x, y, button)
@@ -106,6 +112,7 @@ return function(app)
         end
     end
 
+    ---@param key string
     function scene:keypressed(key)
         if key == "escape" then
             app.sceneManager:push(app.state.pause)

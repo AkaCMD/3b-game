@@ -17,6 +17,9 @@ local function make_player()
             boundary_boost_move_multiplier = 1.35,
             boundary_boost_fire_multiplier = 1.25,
         },
+        ---@param self table
+        ---@param id string
+        ---@return integer
         get_upgrade_level = function(self, id)
             return self.upgradeLevels[id] or 0
         end,

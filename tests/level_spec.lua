@@ -8,6 +8,7 @@ require("src.level")
 
 local T = require("tests.helpers.testlib")
 
+---@param run fun(world: World)
 local function with_test_world(run)
     local originalWorld = rawget(_G, "World")
     local WorldClass = World

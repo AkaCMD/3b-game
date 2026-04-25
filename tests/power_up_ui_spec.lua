@@ -9,9 +9,14 @@ local T = require("tests.helpers.testlib")
 local function make_player()
     return {
         upgradeLevels = {},
+        ---@param self table
+        ---@param id string
+        ---@return integer
         get_upgrade_level = function(self, id)
             return self.upgradeLevels[id] or 0
         end,
+        ---@param self table
+        ---@param id string
         increment_upgrade_level = function(self, id)
             self.upgradeLevels[id] = (self.upgradeLevels[id] or 0) + 1
         end,

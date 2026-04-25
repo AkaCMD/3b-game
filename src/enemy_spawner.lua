@@ -18,10 +18,14 @@ function EnemySpawner:new(pos)
     self:set_tag("enemy_spawner")
 end
 
+---@param dt number
+---@param context? table
 function EnemySpawner:update(dt, context)
     Entity.update(self, dt, context)
 end
 
+---@param waveNumber? integer
+---@return integer
 function EnemySpawner:next_enemy_type_for_wave(waveNumber)
     waveNumber = waveNumber or 1
     if self.lastWaveNumber ~= waveNumber then
@@ -52,12 +56,18 @@ function EnemySpawner:next_enemy_type_for_wave(waveNumber)
     return EnemyType.Shielded
 end
 
+---@param ax number
+---@param ay number
+---@param bx number
+---@param by number
+---@return number
 local function distance_squared(ax, ay, bx, by)
     local dx = ax - bx
     local dy = ay - by
     return dx * dx + dy * dy
 end
 
+---@return number, number, number, number
 function EnemySpawner:get_spawn_axes()
     local tx, ty = 1, 0
     local nx, ny = 0, 0
@@ -85,6 +95,11 @@ function EnemySpawner:get_spawn_axes()
     return tx, ty, nx, ny
 end
 
+---@param x number
+---@param y number
+---@param occupiedPositions vec2[]
+---@param minDistanceSq number
+---@return boolean
 function EnemySpawner:is_position_occupied(x, y, occupiedPositions, minDistanceSq)
     for _, pos in ipairs(occupiedPositions) do
         if distance_squared(x, y, pos.x, pos.y) < minDistanceSq then
@@ -106,6 +121,12 @@ function EnemySpawner:is_position_occupied(x, y, occupiedPositions, minDistanceS
     return false
 end
 
+---@param baseX number
+---@param baseY number
+---@param nx number
+---@param ny number
+---@param occupiedPositions vec2[]
+---@return vec2
 function EnemySpawner:find_spawn_position(baseX, baseY, nx, ny, occupiedPositions)
     local rowSpacing = 18
     local maxRows = 8
@@ -122,6 +143,9 @@ function EnemySpawner:find_spawn_position(baseX, baseY, nx, ny, occupiedPosition
     return vec2(baseX + nx * rowSpacing * maxRows, baseY + ny * rowSpacing * maxRows)
 end
 
+---@param enemyCount? integer
+---@param waveNumber? integer
+---@return integer
 function EnemySpawner:spawnWave(enemyCount, waveNumber)
     enemyCount = enemyCount or 1
     waveNumber = waveNumber or 1

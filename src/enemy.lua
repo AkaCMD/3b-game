@@ -38,10 +38,17 @@ local ENEMY_VARIANTS = {
 	},
 }
 
+---@param enemyType integer
+---@return table
 local function get_enemy_variant(enemyType)
 	return ENEMY_VARIANTS[enemyType] or ENEMY_VARIANTS[EnemyType.Normal]
 end
 
+---@param pos vec2
+---@param rot? number
+---@param scale vec2
+---@param speed? number
+---@param options? table
 function Enemy:new(pos, rot, scale, speed, options)
 	---@class Enemy : Entity
 	options = options or {}
@@ -77,6 +84,8 @@ function Enemy:new(pos, rot, scale, speed, options)
         should_activate = function()
             return true
         end,
+        ---@param entity Enemy
+        ---@return boolean
         perform = function(entity)
             local projectile = entity:shoot()
             if not projectile then
@@ -90,6 +99,9 @@ function Enemy:new(pos, rot, scale, speed, options)
     self:add_component("contact_damage", CollisionAction({
         targetTags = { "player" },
         consume_self = true,
+        ---@param entity Enemy
+        ---@param other Entity
+        ---@return boolean
         action = function(entity, other)
             local damageable = other.get_component and other:get_component("damageable")
             if not damageable then
@@ -102,6 +114,7 @@ function Enemy:new(pos, rot, scale, speed, options)
     self:add_component("damageable", Damageable({
         health = self.health,
         maxHealth = self.health,
+        ---@param entity Enemy
         on_death = function(entity)
             entity:emit("enemy_killed", { enemy = entity })
 
@@ -121,6 +134,8 @@ function Enemy:new(pos, rot, scale, speed, options)
     }))
 end
 
+---@param dt number
+---@param context? table
 function Enemy:update(dt, context)
 	if self.shieldFlashTimer > 0 then
 		self.shieldFlashTimer = math.max(0, self.shieldFlashTimer - dt)
@@ -128,10 +143,13 @@ function Enemy:update(dt, context)
     Entity.update(self, dt, context)
 end
 
+---@return boolean
 function Enemy:is_shielded()
 	return self.hasFrontShield == true
 end
 
+---@param source Entity|nil
+---@return boolean
 function Enemy:is_source_blocked_by_shield(source)
 	if not self:is_shielded() or not source or not source.pos then
 		return false
@@ -154,6 +172,9 @@ function Enemy:is_source_blocked_by_shield(source)
 	return frontDot >= math.cos(self.shieldHalfAngle)
 end
 
+---@param source Entity|nil
+---@param amount? integer
+---@return boolean
 function Enemy:receive_bullet_hit(source, amount)
 	local damageable = self.get_component and self:get_component("damageable")
 	if not damageable then
@@ -216,6 +237,7 @@ function Enemy:free()
 	Enemy.release(self)
 end
 
+---@return Bullet
 function Enemy:shoot()
 	local dir = vec2(math.cos(self.rotation), math.sin(self.rotation))
 	local spawnPos = self.pos:copy() + 10 * dir

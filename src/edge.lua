@@ -22,6 +22,8 @@ local EDGE_LABELS = {
     [EdgeType.Damagable] = "Damagable",
 }
 
+---@param name string
+---@return table
 local function get_palette_color(name)
     local palette = rawget(_G, "PALETTE")
     if palette and palette[name] then
@@ -48,6 +50,7 @@ function Edge:new(start, finish, edgeTypeIndex)
     self:refresh_geometry()
 end
 
+---@param world World
 function Edge:on_added_to_world(world)
     Entity.on_added_to_world(self, world)
     if self.edgeType == EdgeType.SpawnEnemy then
@@ -55,6 +58,7 @@ function Edge:on_added_to_world(world)
     end
 end
 
+---@param world World
 function Edge:on_removed_from_world(world)
     self:clear_enemy_spawners()
     Entity.on_removed_from_world(self, world)
@@ -105,10 +109,13 @@ function Edge:rebuild_enemy_spawners()
     end
 end
 
+---@param targetEdge Edge
 function Edge:set_portal_target(targetEdge)
     self.portalTarget = targetEdge
 end
 
+---@param dt number
+---@param context? table
 function Edge:update(dt, context)
     Entity.update(self, dt, context)
 end
@@ -126,9 +133,9 @@ function Edge:draw()
     Entity.draw(self)
 end
 
+---@param other Entity
 function Edge:handle_block_collision(other)
     if other:has_tag("player") then
-        logger.info(self:get_label())
         return
     end
 
@@ -137,9 +144,9 @@ function Edge:handle_block_collision(other)
     end
 end
 
+---@param other Entity
 function Edge:handle_portal_collision(other)
     if other:has_tag("player") then
-        logger.info("Portal")
         self:teleport(other)
         love.audio.play(Sfx_portal)
         return
@@ -170,6 +177,11 @@ function Edge:onCollide(other)
     self:handle_block_collision(other)
 end
 
+---@param startA vec2
+---@param endA vec2
+---@param startB vec2
+---@param endB vec2
+---@return Edge, Edge
 function CreatePortalPair(startA, endA, startB, endB)
 	local a = Edge(startA, endA, EdgeType.Portal)
 	local b = Edge(startB, endB, EdgeType.Portal)
@@ -201,7 +213,6 @@ function Edge:teleport(e)
 end
 
 ---@param factor number
----@param center vec2
 function Edge:scaler(factor)
 	---@param p vec2
 	local function scale_point(p)

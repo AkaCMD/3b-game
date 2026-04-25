@@ -3,6 +3,8 @@ WaveManager = class({
     default_tostring = true,
 })
 
+---@param world World
+---@param options? table
 function WaveManager:new(world, options)
     options = options or {}
     self.world = assert(world, "WaveManager requires world")
@@ -22,6 +24,7 @@ function WaveManager:new(world, options)
     self.onUpgradeReady = options.on_upgrade_ready
 end
 
+---@param dt number
 function WaveManager:update(dt)
     if self.awaitingUpgradeSelection then
         return
@@ -69,6 +72,7 @@ function WaveManager:update(dt)
     end
 end
 
+---@return integer
 function WaveManager:get_alive_enemy_count()
     if self.world.get_tag_count then
         return self.world:get_tag_count("enemy")
@@ -76,15 +80,20 @@ function WaveManager:get_alive_enemy_count()
     return #self.world:find_all_by_tag("enemy")
 end
 
+---@return EnemySpawner[]
 function WaveManager:get_spawners()
     return self.world:find_all_by_tag("enemy_spawner")
 end
 
+---@param waveNumber? integer
+---@return integer
 function WaveManager:get_enemies_per_spawner(waveNumber)
     waveNumber = waveNumber or (self.currentWave + 1)
     return 1 + math.floor((waveNumber - 1) / self.waveScaleInterval)
 end
 
+---@param aliveEnemies? integer
+---@return integer|number
 function WaveManager:get_available_enemy_slots(aliveEnemies)
     aliveEnemies = aliveEnemies or self:get_alive_enemy_count()
     if self.maxActiveEnemies == nil or self.maxActiveEnemies <= 0 then
@@ -93,10 +102,13 @@ function WaveManager:get_available_enemy_slots(aliveEnemies)
     return math.max(0, self.maxActiveEnemies - aliveEnemies)
 end
 
+---@param delay? number
 function WaveManager:schedule_next_wave(delay)
     self.timeUntilNextWave = delay or self.baseDelay
 end
 
+---@param aliveEnemies integer
+---@return integer
 function WaveManager:spawn_pending_enemies(aliveEnemies)
     if self.pendingEnemiesToSpawn <= 0 then
         return 0
@@ -144,6 +156,7 @@ function WaveManager:spawn_pending_enemies(aliveEnemies)
     return spawned
 end
 
+---@return boolean
 function WaveManager:spawn_next_wave()
     local spawners = self:get_spawners()
     if #spawners == 0 then
@@ -178,6 +191,7 @@ function WaveManager:complete_upgrade_selection()
     self:schedule_next_wave()
 end
 
+---@return string
 function WaveManager:get_wave_text()
     local displayWave = self.currentWave
     if not self.waveActive and not self.awaitingUpgradeSelection then
@@ -186,6 +200,7 @@ function WaveManager:get_wave_text()
     return ("波次 %d"):format(math.max(displayWave, 1))
 end
 
+---@return string
 function WaveManager:get_upgrade_progress_text()
     if self.awaitingUpgradeSelection then
         return "Choose an upgrade"

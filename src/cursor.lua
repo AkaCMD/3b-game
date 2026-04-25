@@ -4,6 +4,8 @@ Cursor = class({
 	default_tostring = true
 })
 
+---@param pos vec2
+---@param scale vec2
 function Cursor:new(pos, scale)
 	self:super(pos, scale)
 	self.lastPos = self.pos
@@ -11,6 +13,8 @@ function Cursor:new(pos, scale)
     self:set_tag("cursor")
 end
 
+---@param dt number
+---@param context? table
 function Cursor:update(dt, context)
 	self.lastPos = self.pos
 	Entity.update(self, dt, context)

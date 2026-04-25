@@ -1,3 +1,4 @@
+---@param app table
 return function(app)
     local scene = {}
     local gameoverText = Text("GAMEOVER", 40, PALETTE.red, SCREEN_WIDTH/2, SCREEN_HEIGHT/2-150, true, 0)
@@ -11,6 +12,7 @@ return function(app)
         hintText:draw()
     end
 
+    ---@param key string
     function scene:keypressed(key)
         if key == "r" then
             app.initGame()

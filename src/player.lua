@@ -10,6 +10,8 @@ Player = class({
 	default_tostring = true
 })
 
+---@param pos vec2
+---@param scale vec2
 function Player:new(pos, scale)
 	---@class Player: Entity
 	self:super(pos, scale)
@@ -40,12 +42,17 @@ function Player:new(pos, scale)
     self:add_component("keyboard_move", KeyboardMove(self.baseMoveSpeed))
     self:add_component("weapon", CooldownAction({
         cooldown = self.baseFireCooldown,
+        ---@param entity Player
+        ---@param baseCooldown number
+        ---@return number
         get_cooldown = function(entity, baseCooldown)
             return entity:get_auto_fire_cooldown(baseCooldown)
         end,
         should_activate = function()
             return love.mouse.isDown(1)
         end,
+        ---@param entity Player
+        ---@return boolean
         perform = function(entity)
             local projectile = entity:shoot()
             if not projectile then
@@ -61,6 +68,8 @@ function Player:new(pos, scale)
         health = 6,
         maxHealth = 6,
         invulnerabilityComponent = "invulnerability",
+        ---@param entity Player
+        ---@param dmg integer
         on_damaged = function(entity, dmg)
             local invulnerability = entity:get_component("invulnerability")
             if invulnerability then
@@ -69,12 +78,15 @@ function Player:new(pos, scale)
             entity:emit("player_take_damage", { player = entity, damage = dmg })
             love.audio.play(Sfx_hurt)
         end,
+        ---@param entity Player
         on_death = function(entity)
             entity:free()
         end,
     }))
 end
 
+---@param dt number
+---@param context? table
 function Player:update(dt, context)
 	self.lastPos = self.pos:copy()
     if self.boundaryBoostRemaining > 0 then
@@ -83,6 +95,7 @@ function Player:update(dt, context)
 	Entity.update(self, dt, context)
 end
 
+---@param key string
 function Player:keypressed(key)
 	if key == "space" then
 		self:explode()
@@ -101,6 +114,7 @@ function Player:draw()
 	end
 end
 
+---@return Bullet
 function Player:shoot()
 	love.audio.play(Sfx_small_hit)
 	local dir = vec2(math.cos(self.rotation - math.pi/2), math.sin(self.rotation - math.pi/2))
@@ -130,6 +144,7 @@ function Player:explode()
 end
 
 ---@param dmg integer
+---@return boolean
 function Player:takeDamage(dmg)
     local damageable = self:get_component("damageable")
     if damageable then
@@ -139,16 +154,22 @@ function Player:takeDamage(dmg)
     return true
 end
 
+---@param id string
+---@return integer
 function Player:get_upgrade_level(id)
     return self.upgradeLevels[id] or 0
 end
 
+---@param id string
+---@return integer
 function Player:increment_upgrade_level(id)
     local nextLevel = self:get_upgrade_level(id) + 1
     self.upgradeLevels[id] = nextLevel
     return nextLevel
 end
 
+---@param baseSpeed? number
+---@return number
 function Player:get_move_speed(baseSpeed)
     local speed = baseSpeed or self.baseMoveSpeed
     local multiplier = self.upgrades.move_speed_multiplier or 1.0
@@ -158,6 +179,7 @@ function Player:get_move_speed(baseSpeed)
     return speed * multiplier
 end
 
+---@return number
 function Player:get_fire_rate_multiplier()
     local multiplier = self.upgrades.fire_rate_multiplier or 1.0
     if self.boundaryBoostRemaining > 0 then
@@ -166,19 +188,24 @@ function Player:get_fire_rate_multiplier()
     return multiplier
 end
 
+---@param baseCooldown? number
+---@return number
 function Player:get_auto_fire_cooldown(baseCooldown)
     local cooldown = baseCooldown or self.baseFireCooldown
     return cooldown / self:get_fire_rate_multiplier()
 end
 
+---@return number
 function Player:get_bullet_scale()
     return self.upgrades.bullet_scale or 1.0
 end
 
+---@return boolean
 function Player:can_bullet_boundary_warp()
     return self.upgrades.bullet_boundary_warp_enabled == true
 end
 
+---@return boolean
 function Player:activate_boundary_boost()
     if not self.upgrades.boundary_boost_enabled then
         return false
