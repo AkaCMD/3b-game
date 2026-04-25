@@ -90,6 +90,35 @@ return {
         end,
     },
     {
+        name = "刷怪器生成的敌人初始朝向场地内侧，避免出生后冲出边界",
+        run = function()
+            local world = World()
+            local edge = Edge(vec2(10, -30), vec2(10, 30), EdgeType.SpawnEnemy)
+            edge.levelCenter = vec2(0, 0)
+            world:add_entity(edge)
+
+            local player = Entity(vec2(0, 0), vec2(1, 1))
+            player:set_tag("player")
+            player.hasCollision = false
+            world:add_entity(player)
+
+            local spawner = edge:get_enemy_spawners()[2]
+            spawner:spawnWave(1, 1)
+            world:update(0)
+
+            local enemy = world:find_first_by_tag("enemy")
+            T.assert_true(enemy ~= nil)
+            local initialX = enemy.pos.x
+
+            for _ = 1, 10 do
+                world:update(1 / 60)
+            end
+
+            T.assert_true(enemy.pos.x < initialX, "敌人出生后应先向场地内侧移动")
+            T.assert_true(enemy.pos.x < 10, "敌人不应越过右侧刷怪边界外侧")
+        end,
+    },
+    {
         name = "刷怪器会避开已占用位置，防止同波敌人堆叠",
         run = function()
             local world = World()

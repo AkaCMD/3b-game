@@ -157,6 +157,11 @@ function EnemySpawner:spawnWave(enemyCount, waveNumber)
     local spread = 18
     local enemySpeed = 100 + math.min(waveNumber - 1, 10) * 8
     local spawnInset = 14
+    local enemyRotation = 0
+    if nx ~= 0 or ny ~= 0 then
+        enemyRotation = math.atan2(ny, nx)
+    end
+
     for i = 1, enemyCount do
         local offset = (i - (enemyCount + 1) / 2) * spread
         local baseX = self.pos.x + tx * offset + nx * spawnInset
@@ -164,7 +169,7 @@ function EnemySpawner:spawnWave(enemyCount, waveNumber)
         local spawnPos = self:find_spawn_position(baseX, baseY, nx, ny, occupiedPositions)
         table.insert(occupiedPositions, spawnPos)
         local enemyType = self:next_enemy_type_for_wave(waveNumber)
-        self:spawn(Enemy(spawnPos, 0, vec2(1.5, 1.5), enemySpeed, {
+        self:spawn(Enemy(spawnPos, enemyRotation, vec2(1.5, 1.5), enemySpeed, {
             enemyType = enemyType,
         }))
         spawned = spawned + 1
